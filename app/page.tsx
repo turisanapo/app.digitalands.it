@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Image from 'next/image';
 import { FerrisWheel, Bed, Building2, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -75,11 +75,13 @@ export default function Home() {
 
                 {/* SearchWidget positioned between sections */}
                 <div className="relative z-20 -mt-16 mb-16">
-                    <SearchWidget
-                        className="max-w-2xl mx-auto"
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                    />
+                    <Suspense>
+                        <SearchWidget
+                            className="max-w-2xl mx-auto"
+                            activeTab={activeTab}
+                            setActiveTab={setActiveTab}
+                        />
+                    </Suspense>
                 </div>
 
                 <div className="container mx-auto px-4">
@@ -192,16 +194,16 @@ export default function Home() {
             </main>
 
             <footer className="bg-black p-8 pt-24">
-                <div className="container mx-auto flex flex-wrap justify-between gap-8">
-                <div className="pt-8">
-                    <Image src="/logo-black.png" alt="Digital Lands Logo" width={100} height={25} className="mb-4" />
-                    <div className="flex space-x-4">
-                        <Facebook className="w-6 h-6 text-white" />
-                        <Twitter className="w-6 h-6 text-white" />
-                        <Instagram className="w-6 h-6 text-white" />
-                        <Linkedin className="w-6 h-6 text-white" />
+                <div className="container mx-auto flex flex-wrap justify-between gap-6">
+                    <div className="pt-2">
+                        <Image src="/logo-black.png" alt="Digital Lands Logo" width={120} height={30} className="mb-2" />
+                        <div className="flex space-x-3">
+                            <Facebook className="w-5 h-5 text-white" />
+                            <Twitter className="w-5 h-5 text-white" />
+                            <Instagram className="w-5 h-5 text-white" />
+                            <Linkedin className="w-5 h-5 text-white" />
+                        </div>
                     </div>
-                </div>
                     <div className="pt-8">
                         <h3 className="font-semibold mb-2 text-white">Our Destinations</h3>
                         <ul className="text-sm text-white">
