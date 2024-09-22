@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from "next/image";
+import Image from 'next/image';
 import { FerrisWheel, Bed, Building2, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { SearchWidget } from "@/src/components/ui/search-widget";
