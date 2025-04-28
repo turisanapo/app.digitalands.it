@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useRef } from 'react';
 import Image from 'next/image';
-import { FerrisWheel, Bed, Building2, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { FerrisWheel, Bed, Building2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { SearchWidget } from "@/src/components/ui/search-widget";
 import { Card } from "@/src/components/ui/card";
@@ -10,6 +10,11 @@ import { NewsletterSubscription } from "@/src/components/ui/newsletter-subscript
 
 export default function Home() {
     const [activeTab, setActiveTab] = useState('strutture');
+    const membershipSectionRef = useRef<HTMLDivElement>(null);
+
+    const scrollToMembership = () => {
+        membershipSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     return (
         <div className="min-h-screen bg-white">
@@ -54,9 +59,9 @@ export default function Home() {
                         <Image src="/logo.png" alt="Digital Lands" width={150} height={40} />
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-end items-center space-x-2 md:space-x-4 w-full md:w-auto mt-4 md:mt-0">
-                        <Button variant="secondary" className="text-xs sm:text-sm">Accedi</Button>
-                        <Button className="bg-yellow-400 text-black text-xs sm:text-sm">Iscriviti</Button>
-                        <Button variant="secondary" className="underline text-xs sm:text-sm">Ottieni la tua tessera</Button>
+                        <Button variant="secondary" className="text-xs sm:text-sm" onClick={scrollToMembership}>Accedi</Button>
+                        <Button className="bg-yellow-400 text-black text-xs sm:text-sm" onClick={scrollToMembership}>Iscriviti</Button>
+                        <Button variant="secondary" className="underline text-xs sm:text-sm" onClick={scrollToMembership}>Ottieni la tua tessera</Button>
                     </div>
                 </nav>
             </header>
@@ -163,28 +168,12 @@ export default function Home() {
                             />
                         </div>
                     </section>
-                    <section className="mb-12 flex flex-col items-start max-w-4xl mx-auto">
+                    <section ref={membershipSectionRef} className="mb-12 flex flex-col items-center max-w-4xl mx-auto">
                         <h2 className="text-2xl font-semibold mb-6 text-gray-600 w-full text-center">Ottieni la tua tessera per accedere alle <span className="text-[#FF6E00]">attività</span> e <span className="text-[#FF6E00]">strutture</span> convenzionate!</h2>
-                        <div className="flex flex-col md:flex-row w-full">
-                            <div className="md:w-1/3 flex flex-col items-center">
-                                <Image src="/logo.png" alt="Digital Lands Logo" width={200} height={50} className="mb-4" />
-                                <Button className="bg-yellow-400 text-black text-sm">Scopri di più</Button>
-                            </div>
-                            <div className="md:w-2/3 md:pl-6 mt-4 md:mt-0">
+                        <div className="flex flex-col md:flex-row w-full justify-center">
+                            <div className="md:w-2/3 md:pl-6 mt-4 md:mt-0 text-center">
                                 <p className="text-lg text-gray-500">Grazie alla tessera Lavoratore in Remoto, potrai usufruire di tutte le offerte e convenzioni presenti in piattaforma! Tantissime attività e strutture ti aspettano finito il tuo lavoro!</p>
                             </div>
-                        </div>
-                    </section>
-                    <section className="mb-12 text-center">
-                        <h2 className="text-2xl font-semibold mb-6 text-black">Partners che credono in noi</h2>
-                        <div className="flex justify-center">
-                            <Image
-                                src="/sample-partner-1.png"
-                                alt="Partner Logo"
-                                width={200}
-                                height={100}
-                                className="object-contain"
-                            />
                         </div>
                     </section>
                     <section className="relative z-20 -mb-16 mt-16">
@@ -193,52 +182,25 @@ export default function Home() {
                 </div>
             </main>
 
-            <footer className="bg-black p-8 pt-24">
-                <div className="container mx-auto flex flex-wrap justify-between gap-6">
-                    <div className="pt-2">
-                        <Image src="/logo-black.png" alt="Digital Lands Logo" width={120} height={30} className="mb-2" />
-                        <div className="flex space-x-3">
-                            <Facebook className="w-5 h-5 text-white" />
-                            <Twitter className="w-5 h-5 text-white" />
-                            <Instagram className="w-5 h-5 text-white" />
-                            <Linkedin className="w-5 h-5 text-white" />
-                        </div>
-                    </div>
-                    <div className="pt-8">
-                        <h3 className="font-semibold mb-2 text-white">Our Destinations</h3>
-                        <ul className="text-sm text-white">
-                            <li>Canada</li>
-                            <li>Alaska</li>
-                            <li>France</li>
-                            <li>Iceland</li>
-                        </ul>
-                    </div>
-                    <div className="pt-8">
-                        <h3 className="font-semibold mb-2 text-white">About Us</h3>
-                        <ul className="text-sm text-white">
-                            <li>Our Story</li>
-                            <li>Team</li>
-                            <li>Careers</li>
-                            <li>Press</li>
-                        </ul>
-                    </div>
-                    <div className="pt-8">
-                        <h3 className="font-semibold mb-2 text-white">Contact</h3>
-                        <ul className="text-sm text-white">
-                            <li>Support</li>
-                            <li>FAQ</li>
-                            <li>Partnerships</li>
-                            <li>Advertising</li>
-                        </ul>
-                    </div>
-                    <div className="pt-8">
-                        <h3 className="font-semibold mb-2 text-white">Legal</h3>
-                        <ul className="text-sm text-white">
-                            <li>Terms of Service</li>
-                            <li>Privacy Policy</li>
-                            <li>Cookie Policy</li>
-                            <li>GDPR</li>
-                        </ul>
+            <footer className="bg-black p-16">
+                <div className="container mx-auto flex items-center justify-center">
+                    <div className="flex items-center gap-8">
+                        <Image src="/logo-black.png" alt="Digital Lands Logo" width={120} height={30} />
+                        <a 
+                            href="https://www.instagram.com/digitalands.it" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="hover:opacity-80 transition-opacity"
+                        >
+                            <svg 
+                                className="w-5 h-5 text-white" 
+                                viewBox="0 0 24 24" 
+                                fill="currentColor"
+                            >
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                        <p className="text-white text-sm">Tutti i diritti riservati.</p>
                     </div>
                 </div>
             </footer>

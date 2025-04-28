@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Poppins } from 'next/font/google'
+import { Toaster } from "sonner";
+import { GoogleAnalytics } from '@/src/components/analytics/google-analytics';
+import { RouteAnalytics } from '@/src/components/analytics/route-analytics';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -45,10 +48,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} font-sans`}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <head>
+        <GoogleAnalytics />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <RouteAnalytics />
         {children}
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

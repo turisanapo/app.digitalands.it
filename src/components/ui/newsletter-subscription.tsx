@@ -1,18 +1,46 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import { toast } from "sonner";
 
 export function NewsletterSubscription() {
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically handle the form submission,
-    // such as sending the email to your API
-    console.log('Submitted email:', email);
-    setEmail('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Iscrizione avvenuta con successo!');
+        setEmail('');
+      } else {
+        throw new Error(data.message || 'Errore durante l\'iscrizione');
+      }
+    } catch (error) {
+      toast.error('Si è verificato un errore. Riprova più tardi.');
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,18 +60,22 @@ export function NewsletterSubscription() {
               onChange={(e) => setEmail(e.target.value)}
               className="flex-grow bg-white text-black"
               required
+              disabled={isLoading}
             />
-            <Button variant="secondaryDark" type="submit">
-              Iscriviti
+            <Button variant="secondaryDark" type="submit" disabled={isLoading}>
+              {isLoading ? 'Invio in corso...' : 'Iscriviti'}
             </Button>
           </form>
         </div>
         <div className="hidden md:block w-1/3 relative">
           <div className="relative z-10 w-full h-full overflow-hidden rounded-lg">
-            <img
-              src="/mailbox-img.png?height=200&width=200"
+            <Image
+              src="/mailbox-img.png"
               alt="Newsletter visual"
+              width={200}
+              height={200}
               className="w-full h-full object-cover"
+              priority
             />
           </div>
         </div>
