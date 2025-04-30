@@ -1,16 +1,35 @@
 'use client';
 
-import { Suspense, useState, useRef } from 'react';
+import { Suspense, useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { FerrisWheel, Bed, Building2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { SearchWidget } from "@/src/components/ui/search-widget";
 import { Card } from "@/src/components/ui/card";
+import { CardSkeleton } from "@/src/components/ui/card-skeleton";
 import { NewsletterSubscription } from "@/src/components/ui/newsletter-subscription";
+import { getLocations, type Location } from '@/src/lib/supabase/locations';
 
 export default function Home() {
     const [activeTab, setActiveTab] = useState('strutture');
+    const [locations, setLocations] = useState<Location[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const membershipSectionRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        async function loadLocations() {
+            try {
+                setIsLoading(true);
+                const data = await getLocations();
+                setLocations(data);
+            } catch (error) {
+                console.error('Error loading locations:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadLocations();
+    }, []);
 
     const scrollToMembership = () => {
         membershipSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,7 +75,13 @@ export default function Home() {
                         </Button>
                     </div>
                     <div className="flex-shrink-0 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
-                        <Image src="/logo.png" alt="Digital Lands" width={150} height={40} />
+                        <Image 
+                            src="/logo.png" 
+                            alt="Digital Lands" 
+                            width={150} 
+                            height={40}
+                            style={{ width: 'auto', height: 'auto' }}
+                        />
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-end items-center space-x-2 md:space-x-4 w-full md:w-auto mt-4 md:mt-0">
                         <Button variant="secondary" className="text-xs sm:text-sm" onClick={scrollToMembership}>Accedi</Button>
@@ -93,23 +118,27 @@ export default function Home() {
                     <section className="mb-12">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-2xl font-semibold text-black">Guarda le strutture!</h2>
-                            <Button variant="outlineYellow">Mostra più alloggi</Button>
+                            <Button variant="outlineYellow">Mostra più strutture</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card
-                                href="/location/ragusa"
-                                imageSrc="/sample-location-1.png?height=192&width=384"
-                                imageAlt="Alloggio a Ragusa"
-                                title="Marina di Ragusa"
-                                description="50€ / Notte · 2 persone"
-                            />
-                            <Card
-                                href="/location/ragusa"
-                                imageSrc="/sample-location-2.png?height=192&width=384"
-                                imageAlt="Altro alloggio a Ragusa"
-                                title="Centro Storico"
-                                description="70€ / Notte · 3 persone"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {isLoading ? (
+                                Array.from({ length: 8 }).map((_, index) => (
+                                    <CardSkeleton key={index} />
+                                ))
+                            ) : (
+                                locations.map((location) => (
+                                    <Card
+                                        key={location.id}
+                                        href={`/location/${location.id}`}
+                                        images={location.images}
+                                        imageAlt={location.title}
+                                        title={location.title}
+                                        location={location.location}
+                                        description={location.description}
+                                        whatsappUrl={location.whatsapp_url || undefined}
+                                    />
+                                ))
+                            )}
                         </div>
                     </section>
 
@@ -121,25 +150,29 @@ export default function Home() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Card
                                 href="/location/ragusa"
-                                imageSrc="/sample-activity-1.jpg?height=128&width=384"
+                                images={["/sample-activity-1.jpg?height=128&width=384"]}
                                 imageAlt="Attività a Ragusa"
                                 title="Esperienza di Windsurf"
+                                location="Marina di Ragusa, Sicilia"
                                 description="A partire da 30€ / persona"
                                 className="h-auto"
                             />
                             <Card
                                 href="/location/ragusa"
-                                imageSrc="/sample-activity-2.jpg?height=128&width=384"
+                                images={[]}
                                 imageAlt="Altra attività a Ragusa"
                                 title="Escursione in barca"
+                                location="Marina di Ragusa, Sicilia"
                                 description="A partire da 45€ / persona"
                                 className="h-auto"
+                                whatsappUrl="https://wa.me/1234567890"
                             />
                             <Card
                                 href="/location/ragusa"
-                                imageSrc="/sample-activity-3.jpg?height=128&width=384"
+                                images={["/sample-activity-3.jpg?height=128&width=384"]}
                                 imageAlt="Terza attività a Ragusa"
                                 title="Visita guidata"
+                                location="Ragusa Ibla, Sicilia"
                                 description="A partire da 20€ / persona"
                                 className="h-auto"
                             />
@@ -154,16 +187,22 @@ export default function Home() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Card
                                 href="/location/ragusa"
-                                imageSrc="/sample-coworking-1.png?height=192&width=384"
+                                images={[
+                                    "/sample-coworking-1.png?height=192&width=384",
+                                    "/sample-coworking-1.png?height=192&width=384"
+                                ]}
                                 imageAlt="Workspace a Ragusa"
                                 title="Coworking Centro"
+                                location="Ragusa Centro, Sicilia"
                                 description="15€ / giorno · Postazione flessibile"
+                                whatsappUrl="https://wa.me/1234567890"
                             />
                             <Card
                                 href="/location/ragusa"
-                                imageSrc="/sample-coworking-2.png?height=192&width=384"
+                                images={["/sample-coworking-2.png?height=192&width=384"]}
                                 imageAlt="Altro workspace a Ragusa"
                                 title="Ufficio privato"
+                                location="Ragusa Centro, Sicilia"
                                 description="30€ / giorno · Ufficio per 4 persone"
                             />
                         </div>
@@ -185,7 +224,13 @@ export default function Home() {
             <footer className="bg-black p-16">
                 <div className="container mx-auto flex items-center justify-center">
                     <div className="flex items-center gap-8">
-                        <Image src="/logo-black.png" alt="Digital Lands Logo" width={120} height={30} />
+                        <Image 
+                            src="/logo-black.png" 
+                            alt="Digital Lands Logo" 
+                            width={120} 
+                            height={30}
+                            style={{ width: 'auto', height: 'auto' }}
+                        />
                         <a 
                             href="https://www.instagram.com/digitalands.it" 
                             target="_blank" 

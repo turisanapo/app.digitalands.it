@@ -5,6 +5,7 @@ import { Poppins } from 'next/font/google'
 import { Toaster } from "sonner";
 import { GoogleAnalytics } from '@/src/components/analytics/google-analytics';
 import { RouteAnalytics } from '@/src/components/analytics/route-analytics';
+import { AuthProvider } from '@/src/components/providers/auth-provider'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -53,7 +54,9 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <RouteAnalytics />
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster richColors position="top-center" />
       </body>
     </html>
