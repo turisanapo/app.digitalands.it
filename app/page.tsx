@@ -9,26 +9,36 @@ import { Card } from "@/src/components/ui/card";
 import { CardSkeleton } from "@/src/components/ui/card-skeleton";
 import { NewsletterSubscription } from "@/src/components/ui/newsletter-subscription";
 import { getLocations, type Location } from '@/src/lib/supabase/locations';
+import { getActivities, type Activity } from '@/src/lib/supabase/activities';
+import { getWorkspaces, type Workspace } from '@/src/lib/supabase/workspaces';
 
 export default function Home() {
     const [activeTab, setActiveTab] = useState('strutture');
     const [locations, setLocations] = useState<Location[]>([]);
+    const [activities, setActivities] = useState<Activity[]>([]);
+    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const membershipSectionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        async function loadLocations() {
+        async function loadData() {
             try {
                 setIsLoading(true);
-                const data = await getLocations();
-                setLocations(data);
+                const [locationsData, activitiesData, workspacesData] = await Promise.all([
+                    getLocations(),
+                    getActivities(),
+                    getWorkspaces()
+                ]);
+                setLocations(locationsData);
+                setActivities(activitiesData);
+                setWorkspaces(workspacesData);
             } catch (error) {
-                console.error('Error loading locations:', error);
+                console.error('Error loading data:', error);
             } finally {
                 setIsLoading(false);
             }
         }
-        loadLocations();
+        loadData();
     }, []);
 
     const scrollToMembership = () => {
@@ -120,7 +130,7 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-black">Guarda le strutture!</h2>
                             <Button variant="outlineYellow">Mostra più strutture</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {isLoading ? (
                                 Array.from({ length: 8 }).map((_, index) => (
                                     <CardSkeleton key={index} />
@@ -148,34 +158,24 @@ export default function Home() {
                             <Button variant="outlineYellow">Mostra più attività</Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <Card
-                                href="/location/ragusa"
-                                images={["/sample-activity-1.jpg?height=128&width=384"]}
-                                imageAlt="Attività a Ragusa"
-                                title="Esperienza di Windsurf"
-                                location="Marina di Ragusa, Sicilia"
-                                description="A partire da 30€ / persona"
-                                className="h-auto"
-                            />
-                            <Card
-                                href="/location/ragusa"
-                                images={[]}
-                                imageAlt="Altra attività a Ragusa"
-                                title="Escursione in barca"
-                                location="Marina di Ragusa, Sicilia"
-                                description="A partire da 45€ / persona"
-                                className="h-auto"
-                                whatsappUrl="https://wa.me/1234567890"
-                            />
-                            <Card
-                                href="/location/ragusa"
-                                images={["/sample-activity-3.jpg?height=128&width=384"]}
-                                imageAlt="Terza attività a Ragusa"
-                                title="Visita guidata"
-                                location="Ragusa Ibla, Sicilia"
-                                description="A partire da 20€ / persona"
-                                className="h-auto"
-                            />
+                            {isLoading ? (
+                                Array.from({ length: 3 }).map((_, index) => (
+                                    <CardSkeleton key={index} />
+                                ))
+                            ) : (
+                                activities.map((activity) => (
+                                    <Card
+                                        key={activity.id}
+                                        href={`/activity/${activity.id}`}
+                                        images={activity.images}
+                                        imageAlt={activity.title}
+                                        title={activity.title}
+                                        location={activity.location}
+                                        description={activity.description}
+                                        whatsappUrl={activity.whatsapp_url || undefined}
+                                    />
+                                ))
+                            )}
                         </div>
                     </section>
 
@@ -185,26 +185,24 @@ export default function Home() {
                             <Button variant="outlineYellow">Mostra più workspace</Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card
-                                href="/location/ragusa"
-                                images={[
-                                    "/sample-coworking-1.png?height=192&width=384",
-                                    "/sample-coworking-1.png?height=192&width=384"
-                                ]}
-                                imageAlt="Workspace a Ragusa"
-                                title="Coworking Centro"
-                                location="Ragusa Centro, Sicilia"
-                                description="15€ / giorno · Postazione flessibile"
-                                whatsappUrl="https://wa.me/1234567890"
-                            />
-                            <Card
-                                href="/location/ragusa"
-                                images={["/sample-coworking-2.png?height=192&width=384"]}
-                                imageAlt="Altro workspace a Ragusa"
-                                title="Ufficio privato"
-                                location="Ragusa Centro, Sicilia"
-                                description="30€ / giorno · Ufficio per 4 persone"
-                            />
+                            {isLoading ? (
+                                Array.from({ length: 2 }).map((_, index) => (
+                                    <CardSkeleton key={index} />
+                                ))
+                            ) : (
+                                workspaces.map((workspace) => (
+                                    <Card
+                                        key={workspace.id}
+                                        href={`/workspace/${workspace.id}`}
+                                        images={workspace.images}
+                                        imageAlt={workspace.title}
+                                        title={workspace.title}
+                                        location={workspace.location}
+                                        description={workspace.description}
+                                        whatsappUrl={workspace.whatsapp_url || undefined}
+                                    />
+                                ))
+                            )}
                         </div>
                     </section>
                     <section ref={membershipSectionRef} className="mb-12 flex flex-col items-center max-w-4xl mx-auto">
