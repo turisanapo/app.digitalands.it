@@ -98,28 +98,35 @@ export default function Home() {
                         />
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-end items-center space-x-2 md:space-x-4 w-full md:w-auto mt-4 md:mt-0">
+                        <Button
+                            variant="secondary"
+                            className="underline text-xs sm:text-sm order-1"
+                            onClick={scrollToMembership}
+                        >
+                            Ottieni la tua tessera
+                        </Button>
                         {user ? (
-                            <>
-                                <Button variant="secondary" className="text-xs sm:text-sm" onClick={scrollToMembership}>
-                                    {user.email}
-                                </Button>
-                                <Button className="bg-yellow-400 text-black text-xs sm:text-sm" onClick={scrollToMembership}>
-                                    Ottieni la tua tessera
-                                </Button>
-                                <Button variant="secondary" className="underline text-xs sm:text-sm" onClick={signOut}>
-                                    Esci
-                                </Button>
-                            </>
+                            <Button
+                                variant="secondary"
+                                className="text-xs sm:text-sm order-2"
+                                onClick={signOut}
+                            >
+                                Esci
+                            </Button>
                         ) : (
                             <>
-                                <Button variant="secondary" className="text-xs sm:text-sm" onClick={() => router.push('/login')}>
+                                <Button
+                                    variant="secondary"
+                                    className="text-xs sm:text-sm order-2"
+                                    onClick={() => router.push('/login')}
+                                >
                                     Accedi
                                 </Button>
-                                <Button className="bg-yellow-400 text-black text-xs sm:text-sm" onClick={() => router.push('/login')}>
+                                <Button
+                                    className="bg-yellow-400 text-black text-xs sm:text-sm order-3"
+                                    onClick={() => router.push('/login')}
+                                >
                                     Iscriviti
-                                </Button>
-                                <Button variant="secondary" className="underline text-xs sm:text-sm" onClick={() => router.push('/login')}>
-                                    Ottieni la tua tessera
                                 </Button>
                             </>
                         )}
