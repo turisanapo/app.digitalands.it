@@ -11,6 +11,8 @@ import { NewsletterSubscription } from "@/src/components/ui/newsletter-subscript
 import { getLocations, type Location } from '@/src/lib/supabase/locations';
 import { getActivities, type Activity } from '@/src/lib/supabase/activities';
 import { getWorkspaces, type Workspace } from '@/src/lib/supabase/workspaces';
+import { useAuth } from '@/src/components/providers/auth-provider'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
     const [activeTab, setActiveTab] = useState('strutture');
@@ -19,6 +21,8 @@ export default function Home() {
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const membershipSectionRef = useRef<HTMLDivElement>(null);
+    const { user, signOut } = useAuth();
+    const router = useRouter();
 
     useEffect(() => {
         async function loadData() {
@@ -94,9 +98,31 @@ export default function Home() {
                         />
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-end items-center space-x-2 md:space-x-4 w-full md:w-auto mt-4 md:mt-0">
-                        <Button variant="secondary" className="text-xs sm:text-sm" onClick={scrollToMembership}>Accedi</Button>
-                        <Button className="bg-yellow-400 text-black text-xs sm:text-sm" onClick={scrollToMembership}>Iscriviti</Button>
-                        <Button variant="secondary" className="underline text-xs sm:text-sm" onClick={scrollToMembership}>Ottieni la tua tessera</Button>
+                        {user ? (
+                            <>
+                                <Button variant="secondary" className="text-xs sm:text-sm" onClick={scrollToMembership}>
+                                    {user.email}
+                                </Button>
+                                <Button className="bg-yellow-400 text-black text-xs sm:text-sm" onClick={scrollToMembership}>
+                                    Ottieni la tua tessera
+                                </Button>
+                                <Button variant="secondary" className="underline text-xs sm:text-sm" onClick={signOut}>
+                                    Esci
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button variant="secondary" className="text-xs sm:text-sm" onClick={() => router.push('/login')}>
+                                    Accedi
+                                </Button>
+                                <Button className="bg-yellow-400 text-black text-xs sm:text-sm" onClick={() => router.push('/login')}>
+                                    Iscriviti
+                                </Button>
+                                <Button variant="secondary" className="underline text-xs sm:text-sm" onClick={() => router.push('/login')}>
+                                    Ottieni la tua tessera
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </nav>
             </header>
