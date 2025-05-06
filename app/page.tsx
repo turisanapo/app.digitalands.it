@@ -25,6 +25,10 @@ export default function Home() {
     const router = useRouter();
 
     useEffect(() => {
+        console.log('Page user state:', user)
+    }, [user])
+
+    useEffect(() => {
         async function loadData() {
             try {
                 setIsLoading(true);
@@ -61,7 +65,7 @@ export default function Home() {
                         >
                             <FerrisWheel className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                             <span className="relative">
-                                Trova Attività
+                                Attività
                                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#FFD144] to-[#FF903C] transition-transform duration-300 origin-left ${activeTab === 'attivita' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
                             </span>
                         </Button>
@@ -72,7 +76,7 @@ export default function Home() {
                         >
                             <Bed className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                             <span className="relative">
-                                Trova Strutture
+                                Strutture
                                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#FFD144] to-[#FF903C] transition-transform duration-300 origin-left ${activeTab === 'strutture' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
                             </span>
                         </Button>
@@ -83,7 +87,7 @@ export default function Home() {
                         >
                             <Building2 className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                             <span className="relative">
-                                Trova Workspace
+                                Workspace
                                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#FFD144] to-[#FF903C] transition-transform duration-300 origin-left ${activeTab === 'workspace' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
                             </span>
                         </Button>
@@ -116,17 +120,10 @@ export default function Home() {
                         ) : (
                             <>
                                 <Button
-                                    variant="secondary"
-                                    className="text-xs sm:text-sm order-2"
-                                    onClick={() => router.push('/login')}
-                                >
-                                    Accedi
-                                </Button>
-                                <Button
                                     className="bg-yellow-400 text-black text-xs sm:text-sm order-3"
                                     onClick={() => router.push('/login')}
                                 >
-                                    Iscriviti
+                                    Accedi
                                 </Button>
                             </>
                         )}

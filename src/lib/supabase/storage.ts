@@ -50,6 +50,6 @@ export async function getImages(limit = 10) {
 
   return data.map(image => ({
     ...image,
-    url: getImageUrl(image.path)
+    url: getImageUrl(image.path as string)
   }))
 } 
