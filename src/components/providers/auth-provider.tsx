@@ -9,7 +9,6 @@ interface AuthContextType {
   user: User | null
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
-  supabase: ReturnType<typeof createClient>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,11 +21,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    console.log('AuthProvider mounted')
-    
     // Check initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('Initial session check:', { session, error })
+      if (error) {
+        console.error('Error fetching session:', error)
+        return
+      }
       if (session?.user) {
         setUser(session.user)
       }
@@ -35,19 +35,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', { event, session, user: session?.user })
+      console.log('Auth state changed:', event, session) // Debug log
       setUser(session?.user ?? null)
       router.refresh()
     })
 
     return () => {
-      console.log('AuthProvider cleanup')
       subscription.unsubscribe()
     }
   }, [router])
 
   const signInWithGoogle = async () => {
-    console.log('Signing in with Google')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -57,14 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    console.log('Signing out')
     await supabase.auth.signOut()
     setUser(null)
     router.push('/')
   }
 
   return (
-    <AuthContext.Provider value={{ user, signInWithGoogle, signOut, supabase }}>
+    <AuthContext.Provider value={{ user, signInWithGoogle, signOut }}>
       <div data-auth-provider>
         {children}
       </div>

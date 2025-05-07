@@ -25,10 +25,6 @@ export default function Home() {
     const router = useRouter();
 
     useEffect(() => {
-        console.log('Page user state:', user)
-    }, [user])
-
-    useEffect(() => {
         async function loadData() {
             try {
                 setIsLoading(true);
@@ -169,7 +165,6 @@ export default function Home() {
                                 locations.map((location) => (
                                     <Card
                                         key={location.id}
-                                        href={`/location/${location.id}`}
                                         images={location.images}
                                         imageAlt={location.title}
                                         title={location.title}
@@ -196,7 +191,6 @@ export default function Home() {
                                 activities.map((activity) => (
                                     <Card
                                         key={activity.id}
-                                        href={`/activity/${activity.id}`}
                                         images={activity.images}
                                         imageAlt={activity.title}
                                         title={activity.title}
@@ -223,7 +217,6 @@ export default function Home() {
                                 workspaces.map((workspace) => (
                                     <Card
                                         key={workspace.id}
-                                        href={`/workspace/${workspace.id}`}
                                         images={workspace.images}
                                         imageAlt={workspace.title}
                                         title={workspace.title}
