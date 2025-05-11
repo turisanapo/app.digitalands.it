@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent } from "../../components/ui/dialog"
 import Image from "next/image"
-import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageCircle, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 interface DetailModalProps {
@@ -64,6 +64,13 @@ export function DetailModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-0 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+        >
+          <X className="h-4 w-4 text-black" />
+          <span className="sr-only">Close</span>
+        </button>
         <div className="space-y-6">
           <div className="cursor-pointer" onClick={onClose}>
             <h1 className="text-2xl font-bold text-black">{title}</h1>
