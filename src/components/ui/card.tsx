@@ -90,7 +90,7 @@ export function Card({
       >
         <div className="p-4">
           <div 
-            className="relative h-48 rounded-lg overflow-hidden group cursor-pointer"
+            className="relative aspect-[3/2] rounded-lg overflow-hidden group cursor-pointer"
             onClick={handleClick}
           >
             {images.length > 0 ? (
@@ -99,7 +99,7 @@ export function Card({
                   src={images[currentImageIndex]}
                   alt={`${imageAlt} - Image ${currentImageIndex + 1}`}
                   fill
-                  className={`object-contain bg-gray-100 transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className={`object-cover object-center bg-gray-100 transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   priority={currentImageIndex === 0}
                   quality={80}

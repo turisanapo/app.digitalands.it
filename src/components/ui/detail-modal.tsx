@@ -43,14 +43,14 @@ export function DetailModal({
             <p className="text-gray-500">{location}</p>
           </div>
           
-          <div className="relative h-[400px] rounded-lg overflow-hidden">
+          <div className="relative aspect-[3/2] rounded-lg overflow-hidden">
             {images.length > 0 ? (
               <>
                 <Image
                   src={images[currentImageIndex]}
                   alt={`${title} - Image ${currentImageIndex + 1}`}
                   fill
-                  className="object-contain bg-gray-100"
+                  className="object-cover object-center bg-gray-100"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 {images.length > 1 && (

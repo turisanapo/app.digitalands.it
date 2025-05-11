@@ -156,7 +156,7 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-black">Guarda le strutture!</h2>
                             <Button variant="outlineYellow">Mostra più strutture</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {isLoading ? (
                                 Array.from({ length: 8 }).map((_, index) => (
                                     <CardSkeleton key={index} />
@@ -182,7 +182,7 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-black">Guarda le attività convenzionate!</h2>
                             <Button variant="outlineYellow">Mostra più attività</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
                                     <CardSkeleton key={index} />
