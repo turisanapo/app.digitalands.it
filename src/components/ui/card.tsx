@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { Button } from "./button";
 import { useAuth } from '@/src/components/providers/auth-provider'
@@ -19,6 +19,21 @@ interface CardProps {
   whatsappUrl?: string;
 }
 
+function PreloadImages({ images }: { images: string[] }) {
+  useEffect(() => {
+    // Preload next and previous images
+    const preloadImage = (src: string) => {
+      const img = new window.Image();
+      img.src = src;
+    };
+
+    // Preload all images in the background
+    images.forEach(preloadImage);
+  }, [images]);
+
+  return null;
+}
+
 export function Card({ 
   images, 
   imageAlt, 
@@ -32,6 +47,16 @@ export function Card({
   const router = useRouter()
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [nextImageIndex, setNextImageIndex] = useState(1);
+
+  // Preload next image
+  useEffect(() => {
+    if (images.length > 1) {
+      const nextIndex = (currentImageIndex + 1) % images.length;
+      setNextImageIndex(nextIndex);
+    }
+  }, [currentImageIndex, images.length]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -74,9 +99,28 @@ export function Card({
                   src={images[currentImageIndex]}
                   alt={`${imageAlt} - Image ${currentImageIndex + 1}`}
                   fill
-                  className="object-contain bg-gray-100"
+                  className={`object-contain bg-gray-100 transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={currentImageIndex === 0}
+                  quality={80}
+                  loading={currentImageIndex === 0 ? 'eager' : 'lazy'}
+                  onLoad={() => setIsImageLoaded(true)}
                 />
+                {/* Preload next image */}
+                {images.length > 1 && (
+                  <Image
+                    src={images[nextImageIndex]}
+                    alt=""
+                    fill
+                    className="hidden"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    quality={80}
+                    loading="eager"
+                  />
+                )}
+                {!isImageLoaded && (
+                  <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+                )}
                 {images.length > 1 && (
                   <>
                     <button
@@ -162,6 +206,8 @@ export function Card({
         images={images}
         whatsappUrl={whatsappUrl}
       />
+
+      <PreloadImages images={images} />
     </>
   );
 }
