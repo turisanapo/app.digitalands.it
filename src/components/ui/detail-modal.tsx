@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent } from "../../components/ui/dialog"
 import Image from "next/image"
-import { MessageCircle } from "lucide-react"
+import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 interface DetailModalProps {
@@ -70,7 +70,7 @@ export function DetailModal({
             <p className="text-gray-500">{location}</p>
           </div>
           
-          <div className="relative aspect-[3/2] rounded-lg overflow-hidden">
+          <div className="relative aspect-[3/2] rounded-lg overflow-hidden group">
             {images.length > 0 ? (
               <>
                 <Image
@@ -98,17 +98,17 @@ export function DetailModal({
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full disabled:opacity-50"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                       disabled={isTransitioning}
                     >
-                      ←
+                      <ChevronLeft className="h-6 w-6" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full disabled:opacity-50"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                       disabled={isTransitioning}
                     >
-                      →
+                      <ChevronRight className="h-6 w-6" />
                     </button>
                     <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                       {images.map((_, index) => (
