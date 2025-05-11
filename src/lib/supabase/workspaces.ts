@@ -9,6 +9,7 @@ export interface Workspace {
   location: string
   whatsapp_url: string | null
   images: string[]
+  all_images: string[]
   created_at: string
 }
 
@@ -26,15 +27,20 @@ export async function getWorkspaces() {
 
   // Transform image paths to full URLs, handling empty arrays
   const transformedData = (data || []).map(workspace => {
-    // Take only first 3 images if there are more
-    const limitedImages = ((workspace.images as string[]) || []).slice(0, 5)
-    const images = limitedImages.map((path: string) => {
+    const allImages = ((workspace.images as string[]) || []).map((path: string) => {
       const url = getImageUrl(path)
       return url
     })
+
+    // Get up to 5 random images
+    const randomImages = [...allImages]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+
     return {
       ...workspace,
-      images
+      images: randomImages,
+      all_images: allImages
     }
   })
 

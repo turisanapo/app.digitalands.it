@@ -166,6 +166,7 @@ export default function Home() {
                                     <Card
                                         key={location.id}
                                         images={location.images}
+                                        all_images={location.all_images}
                                         imageAlt={location.title}
                                         title={location.title}
                                         location={location.location}
@@ -192,6 +193,7 @@ export default function Home() {
                                     <Card
                                         key={activity.id}
                                         images={activity.images}
+                                        all_images={activity.all_images}
                                         imageAlt={activity.title}
                                         title={activity.title}
                                         location={activity.location}
@@ -218,6 +220,7 @@ export default function Home() {
                                     <Card
                                         key={workspace.id}
                                         images={workspace.images}
+                                        all_images={workspace.all_images}
                                         imageAlt={workspace.title}
                                         title={workspace.title}
                                         location={workspace.location}

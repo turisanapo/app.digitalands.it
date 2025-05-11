@@ -3,7 +3,7 @@
 import { Dialog, DialogContent } from "../../components/ui/dialog"
 import Image from "next/image"
 import { MessageCircle } from "lucide-react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
 interface DetailModalProps {
   isOpen: boolean
@@ -25,12 +25,39 @@ export function DetailModal({
   whatsappUrl
 }: DetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [showLoading, setShowLoading] = useState(false)
+  const loadingTimeoutRef = useRef<NodeJS.Timeout>()
+
+  // Handle loading state with delay
+  useEffect(() => {
+    if (!isImageLoaded) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        setShowLoading(true)
+      }, 300)
+    } else {
+      setShowLoading(false)
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current)
+      }
+    }
+  }, [isImageLoaded])
 
   const nextImage = () => {
+    setIsTransitioning(true)
+    setIsImageLoaded(false)
+    setShowLoading(false)
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
+    setIsTransitioning(true)
+    setIsImageLoaded(false)
+    setShowLoading(false)
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
@@ -50,20 +77,36 @@ export function DetailModal({
                   src={images[currentImageIndex]}
                   alt={`${title} - Image ${currentImageIndex + 1}`}
                   fill
-                  className="object-cover object-center bg-gray-100"
+                  className={`object-cover object-center bg-gray-100 transition-opacity duration-300 ${
+                    isImageLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  onLoad={() => {
+                    setIsImageLoaded(true)
+                    setIsTransitioning(false)
+                  }}
                 />
+                {(!isImageLoaded || isTransitioning) && showLoading && (
+                  <>
+                    <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  </>
+                )}
                 {images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full disabled:opacity-50"
+                      disabled={isTransitioning}
                     >
                       ←
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full disabled:opacity-50"
+                      disabled={isTransitioning}
                     >
                       →
                     </button>
