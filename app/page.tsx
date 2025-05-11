@@ -52,8 +52,8 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-white">
             <header className="bg-white text-black p-4">
-                <nav className="flex flex-col md:flex-row items-center justify-between px-4 py-2 space-y-4 md:space-y-0">
-                    <div className="flex flex-wrap justify-center md:justify-start items-center space-x-2 md:space-x-4 w-full md:w-auto">
+                <nav className="flex flex-col lg:flex-row items-center justify-between px-4 py-2 space-y-4 lg:space-y-0">
+                    <div className="hidden lg:flex flex-wrap justify-center lg:justify-start items-center space-x-2 lg:space-x-4 w-full lg:w-auto">
                         <Button
                             variant="gradientHover"
                             className={`font-semibold group ${activeTab === 'attivita' ? 'active' : ''} text-xs sm:text-sm`}
@@ -88,19 +88,39 @@ export default function Home() {
                             </span>
                         </Button>
                     </div>
-                    <div className="flex-shrink-0 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
-                        <Image 
-                            src="/logo.png" 
-                            alt="Digital Lands" 
-                            width={150} 
-                            height={40}
-                            style={{ width: 'auto', height: 'auto' }}
-                        />
+                    <div className="flex justify-between items-center w-full lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:w-auto">
+                        <div className="flex-shrink-0">
+                            <Image 
+                                src="/logo.png" 
+                                alt="Digital Lands" 
+                                width={120} 
+                                height={32}
+                                style={{ width: 'auto', height: 'auto' }}
+                            />
+                        </div>
+                        <div className="flex items-center space-x-2 lg:hidden">
+                            {user ? (
+                                <Button
+                                    variant="secondary"
+                                    className="text-xs sm:text-sm"
+                                    onClick={signOut}
+                                >
+                                    Esci
+                                </Button>
+                            ) : (
+                                <Button
+                                    className="bg-yellow-400 text-black text-xs sm:text-sm"
+                                    onClick={() => router.push('/login')}
+                                >
+                                    Accedi
+                                </Button>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex flex-wrap justify-center md:justify-end items-center space-x-2 md:space-x-4 w-full md:w-auto mt-4 md:mt-0">
+                    <div className="hidden lg:flex items-center space-x-2">
                         <Button
                             variant="secondary"
-                            className="underline text-xs sm:text-sm order-1"
+                            className="underline text-xs sm:text-sm"
                             onClick={scrollToMembership}
                         >
                             Ottieni la tua tessera
@@ -108,20 +128,18 @@ export default function Home() {
                         {user ? (
                             <Button
                                 variant="secondary"
-                                className="text-xs sm:text-sm order-2"
+                                className="text-xs sm:text-sm"
                                 onClick={signOut}
                             >
                                 Esci
                             </Button>
                         ) : (
-                            <>
-                                <Button
-                                    className="bg-yellow-400 text-black text-xs sm:text-sm order-3"
-                                    onClick={() => router.push('/login')}
-                                >
-                                    Accedi
-                                </Button>
-                            </>
+                            <Button
+                                className="bg-yellow-400 text-black text-xs sm:text-sm"
+                                onClick={() => router.push('/login')}
+                            >
+                                Accedi
+                            </Button>
                         )}
                     </div>
                 </nav>
@@ -156,7 +174,7 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-black">Guarda le strutture!</h2>
                             <Button variant="outlineYellow">Mostra più strutture</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {isLoading ? (
                                 Array.from({ length: 8 }).map((_, index) => (
                                     <CardSkeleton key={index} />
@@ -183,7 +201,7 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-black">Guarda le attività convenzionate!</h2>
                             <Button variant="outlineYellow">Mostra più attività</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
                                     <CardSkeleton key={index} />
@@ -210,7 +228,7 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-black">Prenota un posto nei nostri workspace!</h2>
                             <Button variant="outlineYellow">Mostra più workspace</Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {isLoading ? (
                                 Array.from({ length: 2 }).map((_, index) => (
                                     <CardSkeleton key={index} />
