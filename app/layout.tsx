@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Poppins } from 'next/font/google'
@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { GoogleAnalytics } from '@/src/components/analytics/google-analytics';
 import { RouteAnalytics } from '@/src/components/analytics/route-analytics';
 import { AuthProvider } from '@/src/components/providers/auth-provider'
+import { TimedModal } from '@/src/components/ui/timed-modal'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,6 +25,12 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#ffffff',
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'Digital Lands',
   description: 'Ragusa - La prima città italiana completamente dedicata ai nomadi digitali!',
@@ -38,8 +45,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/favicon/site.webmanifest',
-  themeColor: '#ffffff', // Replace with your theme color
-  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({
@@ -56,6 +61,7 @@ export default function RootLayout({
         <RouteAnalytics />
         <AuthProvider>
           {children}
+          <TimedModal />
         </AuthProvider>
         <Toaster richColors position="top-center" />
       </body>
