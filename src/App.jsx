@@ -17,6 +17,7 @@ import Testimonials from './components/Testimonials';
 import Partners from './components/Partners';
 import WaitlistCTA from './components/WaitlistCTA';
 import SicilyPlayer from './components/SicilyPlayer';
+import StatsPlayer from './components/StatsPlayer';
 import Footer from './components/Footer';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
@@ -64,6 +65,7 @@ function LandingPage() {
             <WhySicily />
             <SicilyPlayer />
             <HowItWorks />
+            <StatsPlayer />
             <Properties />
             <FoundingMember />
             <Testimonials />
