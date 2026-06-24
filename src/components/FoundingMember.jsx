@@ -1,3 +1,7 @@
+import { motion } from 'motion/react';
+
+const EASE_EXPO = [0.16, 1, 0.3, 1];
+
 const CHECKLIST = [
     'Appartamento fiber-verified + router 4G backup',
     'SIM locale all\'arrivo',
@@ -9,10 +13,10 @@ const CHECKLIST = [
 ];
 
 const STATS = [
-    { num: '#20', label: 'Founding spots totali' },
-    { num: '€150', label: 'Deposito per bloccare il posto' },
-    { num: '1 mese', label: 'Soggiorno minimo' },
-    { num: '48h', label: 'Finestra di cancellazione gratuita' },
+    { num: '#20',   label: 'Founding spots totali' },
+    { num: '€150',  label: 'Deposito per bloccare il posto' },
+    { num: '1 mese',label: 'Soggiorno minimo' },
+    { num: '48h',   label: 'Finestra di cancellazione gratuita' },
 ];
 
 export default function FoundingMember() {
@@ -28,9 +32,18 @@ export default function FoundingMember() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
 
                     {/* LEFT */}
-                    <div data-reveal className="reveal">
-                        <div className="section-chip">LIMITED · 20 SPOTS</div>
-                        <h2 className="font-serif text-textPrimary mt-2 mb-5 section-title">
+                    <motion.div
+                        initial={{ opacity: 0, y: 36 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-80px' }}
+                        transition={{ duration: 0.75, ease: EASE_EXPO }}
+                    >
+                        {/* Scarcity indicator — not a chip */}
+                        <div className="founding-counter">
+                            17 / 20 founding spot
+                        </div>
+
+                        <h2 className="font-serif text-textPrimary mb-5 section-title">
                             Founding Member Pack
                         </h2>
                         <p className="text-textMuted text-base leading-relaxed mb-8 max-w-md">
@@ -41,10 +54,17 @@ export default function FoundingMember() {
 
                         <ul className="space-y-3 mb-10">
                             {CHECKLIST.map((item, i) => (
-                                <li key={i} className="check-item">
+                                <motion.li
+                                    key={i}
+                                    className="check-item"
+                                    initial={{ opacity: 0, x: -16 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true, margin: '-40px' }}
+                                    transition={{ duration: 0.5, delay: i * 0.06, ease: EASE_EXPO }}
+                                >
                                     <span className="check-icon">✓</span>
                                     <span className="text-sm text-textPrimary">{item}</span>
-                                </li>
+                                </motion.li>
                             ))}
                         </ul>
 
@@ -59,10 +79,15 @@ export default function FoundingMember() {
                         </div>
 
                         <a href="#waitlist" className="btn-gold">Riserva il tuo posto →</a>
-                    </div>
+                    </motion.div>
 
                     {/* RIGHT — Stats card */}
-                    <div data-reveal className="reveal" style={{ transitionDelay: '150ms' }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 36 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-80px' }}
+                        transition={{ duration: 0.75, delay: 0.15, ease: EASE_EXPO }}
+                    >
                         <div
                             className="rounded-lg p-8"
                             style={{
@@ -88,7 +113,7 @@ export default function FoundingMember() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>

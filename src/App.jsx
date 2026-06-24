@@ -16,6 +16,7 @@ import FoundingMember from './components/FoundingMember';
 import Testimonials from './components/Testimonials';
 import Partners from './components/Partners';
 import WaitlistCTA from './components/WaitlistCTA';
+import SicilyPlayer from './components/SicilyPlayer';
 import Footer from './components/Footer';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
@@ -61,6 +62,7 @@ function LandingPage() {
         <>
             <Hero />
             <WhySicily />
+            <SicilyPlayer />
             <HowItWorks />
             <Properties />
             <FoundingMember />
@@ -135,7 +137,10 @@ export default function App() {
                                     <OnboardingOverlay />
                                     <Suspense fallback={
                                         <div className="min-h-[60vh] flex items-center justify-center">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+                                            <svg className="animate-spin" viewBox="0 0 24 24" fill="none" width="32" height="32" aria-hidden="true">
+                                                    <circle cx="12" cy="12" r="10" stroke="var(--border-light)" strokeWidth="2" />
+                                                    <path d="M12 2a10 10 0 0110 10" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
+                                                </svg>
                                         </div>
                                     }>
                                         <Routes>

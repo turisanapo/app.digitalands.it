@@ -1,3 +1,7 @@
+import { motion } from 'motion/react';
+
+const EASE_EXPO = [0.16, 1, 0.3, 1];
+
 const TESTIMONIALS = [
     {
         quote: 'Ho lavorato 3 mesi a Marina di Ragusa. Meno di uno studio a Milano. Luce migliore. Cibo migliore. Non torno indietro.',
@@ -20,50 +24,112 @@ const TESTIMONIALS = [
         initials: 'L',
         grad: 'linear-gradient(135deg, #5A3A8A, #8A53D4)',
     },
+    {
+        quote: 'Il rapporto qualità-vita è imbattibile. In 10 minuti sono al mare, in 5 ho il laptop aperto con 150 Mbps stabili.',
+        name: 'Elena, 29',
+        role: 'Product Manager · Barcellona',
+        initials: 'E',
+        grad: 'linear-gradient(135deg, #3A8A5A, #53D4A0)',
+    },
+    {
+        quote: 'Pensavo fosse il solito "remote work paradise" di Instagram. Invece è reale. La community è la differenza.',
+        name: 'Tomás, 35',
+        role: 'Freelance designer · Porto',
+        initials: 'T',
+        grad: 'linear-gradient(135deg, #8A3A3A, #D45353)',
+    },
 ];
+
+// Duplicate for seamless loop
+const ALL = [...TESTIMONIALS, ...TESTIMONIALS];
+
+function Card({ quote, name, role, initials, grad }) {
+    return (
+        <div
+            style={{
+                flexShrink: 0,
+                width: '320px',
+                background: 'var(--bg)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '8px',
+                padding: '28px',
+                display: 'flex',
+                flexDirection: 'column',
+            }}
+        >
+            <div style={{ color: 'var(--accent)', fontSize: '13px', letterSpacing: '0.12em', marginBottom: '18px' }}>
+                ★★★★★
+            </div>
+            <blockquote style={{ flex: 1, marginBottom: '24px' }}>
+                "{quote}"
+            </blockquote>
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    paddingTop: '20px',
+                    borderTop: '1px solid var(--border)',
+                }}
+            >
+                <div
+                    style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        background: grad,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        color: 'white',
+                        flexShrink: 0,
+                    }}
+                >
+                    {initials}
+                </div>
+                <div>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: '"Martian Mono", monospace', letterSpacing: '0.03em' }}>{role}</div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function Testimonials() {
     return (
-        <section className="py-16 md:py-28 px-6 md:px-10" style={{ background: 'var(--surface)' }}>
-            <div className="max-w-content mx-auto">
-                <div data-reveal className="reveal mb-10 md:mb-14">
-                    <div className="section-chip">EARLY MEMBERS</div>
-                    <h2 className="font-serif text-textPrimary mt-2 section-title">
+        <section className="py-16 md:py-28" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
+            <div className="max-w-content mx-auto px-6 md:px-10">
+                <motion.div
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-80px' }}
+                    transition={{ duration: 0.75, ease: EASE_EXPO }}
+                    className="mb-12 md:mb-16"
+                >
+                    <h2 className="font-serif text-textPrimary section-title">
                         Dal primo gruppo.
                     </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto">
-                    {TESTIMONIALS.map((t, i) => (
-                        <div
-                            key={t.name}
-                            data-reveal
-                            className="reveal card-hover bg-bg p-7 flex flex-col min-w-[280px]"
-                            style={{ transitionDelay: `${i * 100}ms` }}
-                        >
-                            {/* Stars */}
-                            <div className="text-accent text-sm tracking-widest mb-5">★★★★★</div>
-
-                            <blockquote className="testimonial-card flex-1">
-                                "{t.quote}"
-                            </blockquote>
-
-                            <div className="flex items-center gap-3 mt-6 pt-5" style={{ borderTop: '1px solid var(--border)' }}>
-                                <div
-                                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                                    style={{ background: t.grad }}
-                                >
-                                    {t.initials}
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-textPrimary">{t.name}</div>
-                                    <div className="text-xs text-textMuted font-mono">{t.role}</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                </motion.div>
             </div>
+
+            {/* Marquee — full bleed */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.8, delay: 0.15, ease: EASE_EXPO }}
+            >
+                <div className="marquee-container" style={{ paddingBottom: '4px' }}>
+                    <div className="marquee-track" style={{ paddingLeft: '24px' }}>
+                        {ALL.map((t, i) => (
+                            <Card key={i} {...t} />
+                        ))}
+                    </div>
+                </div>
+            </motion.div>
         </section>
     );
 }

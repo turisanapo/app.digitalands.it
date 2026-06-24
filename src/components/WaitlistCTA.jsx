@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
+
+const EASE_EXPO = [0.16, 1, 0.3, 1];
 
 export default function WaitlistCTA() {
     const [email, setEmail] = useState('');
@@ -10,7 +13,6 @@ export default function WaitlistCTA() {
         const trimmed = email.trim();
         if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return;
 
-
         setStatus('loading');
 
         try {
@@ -19,13 +21,8 @@ export default function WaitlistCTA() {
                 .insert([{ email: trimmed }]);
 
             if (error) {
-                // If already exists, we can still show success or a specific message
-                if (error.code === '23505') {
-                    setStatus('success');
-                } else {
-                    setStatus('error');
-                    console.error('Waitlist error:', error);
-                }
+                setStatus(error.code === '23505' ? 'success' : 'error');
+                if (error.code !== '23505') console.error('Waitlist error:', error);
             } else {
                 setStatus('success');
             }
@@ -44,32 +41,49 @@ export default function WaitlistCTA() {
             <div className="max-w-content mx-auto">
                 <div className="max-w-[560px] mx-auto text-center">
 
-                    <div data-reveal className="reveal">
-                        <div className="section-chip mx-auto" style={{ display: 'inline-flex' }}>EARLY ACCESS</div>
-                    </div>
+                    {/* Status pill — replaces section chip */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-60px' }}
+                        transition={{ duration: 0.6, ease: EASE_EXPO }}
+                        style={{ display: 'flex', justifyContent: 'center' }}
+                    >
+                        <div className="status-pill">
+                            <span className="live-dot" />
+                            Waitlist aperta · 17 spot rimanenti
+                        </div>
+                    </motion.div>
 
-                    <h2
-                        data-reveal
-                        className="reveal font-serif text-textPrimary mt-4 mb-5"
-                        style={{ fontSize: 'clamp(36px, 5vw, 48px)', lineHeight: '1.1', transitionDelay: '80ms' }}
+                    <motion.h2
+                        className="font-serif text-textPrimary mb-5"
+                        style={{ fontSize: 'clamp(36px, 5vw, 48px)', lineHeight: '1.1', textWrap: 'balance' }}
+                        initial={{ opacity: 0, y: 28 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-60px' }}
+                        transition={{ duration: 0.75, delay: 0.08, ease: EASE_EXPO }}
                     >
                         La tua prossima base ti{' '}
                         <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>sta aspettando.</em>
-                    </h2>
+                    </motion.h2>
 
-                    <p
-                        data-reveal
-                        className="reveal text-textMuted leading-relaxed mb-10"
-                        style={{ fontSize: '16px', transitionDelay: '160ms' }}
+                    <motion.p
+                        className="text-textMuted leading-relaxed mb-10"
+                        style={{ fontSize: '16px', lineHeight: 1.7 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-60px' }}
+                        transition={{ duration: 0.7, delay: 0.16, ease: EASE_EXPO }}
                     >
                         Iscriviti alla waitlist. Accesso prioritario + 20% di sconto sul primo mese.
                         Zero spam, mai.
-                    </p>
+                    </motion.p>
 
                     {status === 'success' ? (
-                        <div
-                            data-reveal
-                            className="reveal"
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, ease: EASE_EXPO }}
                             style={{
                                 background: 'var(--bg)',
                                 border: '1px solid rgba(212,168,83,0.25)',
@@ -77,7 +91,6 @@ export default function WaitlistCTA() {
                                 padding: '32px',
                             }}
                         >
-                            {/* Animated checkmark */}
                             <div className="flex items-center justify-center mb-4">
                                 <div
                                     className="w-12 h-12 rounded-full flex items-center justify-center"
@@ -90,9 +103,15 @@ export default function WaitlistCTA() {
                             </div>
                             <div className="text-textPrimary font-medium mb-1">Sei in lista.</div>
                             <div className="text-textMuted text-sm">Ti contatteremo non appena siamo pronti. Benvenuto in Digitalands.</div>
-                        </div>
+                        </motion.div>
                     ) : (
-                        <form onSubmit={handleSubmit} data-reveal className="reveal" style={{ transitionDelay: '240ms' }}>
+                        <motion.form
+                            onSubmit={handleSubmit}
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: '-60px' }}
+                            transition={{ duration: 0.7, delay: 0.24, ease: EASE_EXPO }}
+                        >
                             <div className="flex flex-col sm:flex-row gap-3 mb-4">
                                 <input
                                     type="email"
@@ -122,7 +141,12 @@ export default function WaitlistCTA() {
                             <p className="text-xs text-textMuted font-mono">
                                 🏡 17 founding spot rimanenti · Nessuna carta di credito richiesta
                             </p>
-                        </form>
+                            {status === 'error' && (
+                                <p className="text-xs mt-2" style={{ color: 'oklch(60% 0.15 25)' }}>
+                                    Qualcosa è andato storto. Riprova tra poco.
+                                </p>
+                            )}
+                        </motion.form>
                     )}
                 </div>
             </div>

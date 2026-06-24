@@ -17,8 +17,8 @@ export default {
             },
             fontFamily: {
                 serif: ['"Unbounded"', 'system-ui', 'sans-serif'],
-                sans: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-                mono: ['"DM Mono"', 'monospace'],
+                sans: ['"Figtree"', 'system-ui', 'sans-serif'],
+                mono: ['"Martian Mono"', 'monospace'],
             },
             maxWidth: {
                 content: '1100px',

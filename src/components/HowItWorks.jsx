@@ -1,3 +1,7 @@
+import { motion } from 'motion/react';
+
+const EASE_EXPO = [0.16, 1, 0.3, 1];
+
 const STEPS = [
     {
         num: '01',
@@ -18,16 +22,24 @@ const STEPS = [
 
 export default function HowItWorks() {
     return (
-        <section className="py-16 md:py-28 px-6 md:px-10" id="process" style={{ background: 'var(--surface)' }}>
+        <section
+            className="py-16 md:py-28 px-6 md:px-10"
+            id="process"
+            style={{ background: 'var(--surface)' }}
+        >
             <div className="max-w-content mx-auto">
-                <div className="reveal" data-reveal>
-                    <div className="section-chip">PROCESS</div>
-                    <h2 className="text-textPrimary font-serif mt-2 mb-10 md:mb-16 section-title">
+                <motion.div
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-80px' }}
+                    transition={{ duration: 0.75, ease: EASE_EXPO }}
+                    className="mb-14 md:mb-20"
+                >
+                    <h2 className="text-textPrimary font-serif section-title">
                         Tre passi per la tua prossima base.
                     </h2>
-                </div>
+                </motion.div>
 
-                {/* Stepper */}
                 <div className="relative">
                     {/* Connector line — desktop */}
                     <div
@@ -37,23 +49,25 @@ export default function HowItWorks() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
                         {STEPS.map((step, i) => (
-                            <div
+                            <motion.div
                                 key={step.num}
-                                data-reveal
-                                className="reveal flex flex-col"
-                                style={{ transitionDelay: `${i * 120}ms` }}
+                                initial={{ opacity: 0, y: 36 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: '-60px' }}
+                                transition={{ duration: 0.65, delay: i * 0.12, ease: EASE_EXPO }}
+                                className="flex flex-col"
                             >
-                                {/* Step number */}
                                 <div
                                     className="font-mono font-medium text-accent mb-6 relative"
                                     style={{ fontSize: '13px', letterSpacing: '0.05em' }}
                                 >
-                                    <span className="relative z-10 bg-bg pr-3">{step.num}</span>
+                                    <span className="relative z-10" style={{ background: 'var(--surface)', paddingRight: '12px' }}>
+                                        {step.num}
+                                    </span>
                                 </div>
-
                                 <h3 className="text-textPrimary font-medium text-base mb-3">{step.title}</h3>
                                 <p className="text-textMuted text-sm leading-relaxed">{step.desc}</p>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
