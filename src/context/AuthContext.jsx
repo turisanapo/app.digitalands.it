@@ -32,19 +32,36 @@ export function AuthProvider({ children }) {
     }, []);
 
     async function fetchProfile(authUser) {
-        console.log('Fetching profile for user:', authUser.id);
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata, onboarded, is_premium, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled')
+            .select(`
+                id, name, role, employment_type, profession, vat_number,
+                company_name, company_role, stats_metadata, onboarded,
+                is_premium, is_admin,
+                stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled,
+                bio, avatar_url, phone, website_url, city, country,
+                languages, instagram_url,
+                work_type, skills, linkedin_url, portfolio_url,
+                remote_since_year, preferred_stay_duration, has_vehicle, dietary_restrictions,
+                verification_status, manager_bio, manager_city,
+                certifications, years_experience, team_size, languages_spoken,
+                role_metadata, updated_at
+            `)
             .eq('id', authUser.id)
             .single();
 
         if (error) {
-            console.error('Error fetching profile from Supabase:', error);
+            console.error('Error fetching profile:', error);
         }
 
         if (!error && data) {
-            setUser({ ...authUser, ...data, avatar: data.name?.charAt(0).toUpperCase(), stats_metadata: data.stats_metadata || {} });
+            setUser({
+                ...authUser,
+                ...data,
+                avatar: data.avatar_url || data.name?.charAt(0).toUpperCase(),
+                stats_metadata: data.stats_metadata || {},
+                role_metadata: data.role_metadata || {},
+            });
         } else {
             setUser(authUser);
         }

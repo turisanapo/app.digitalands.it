@@ -1,158 +1,472 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
-import { useI18n } from '../context/I18nContext';
+
+const EASE = [0.16, 1, 0.3, 1];
+
+// ─── Step components ──────────────────────────────────────────────────────────
+
+function ChipSelect({ options, value, onChange, multi = false }) {
+    const selected = multi ? (value || []) : value;
+
+    function toggle(opt) {
+        if (!multi) { onChange(opt); return; }
+        const cur = selected || [];
+        onChange(cur.includes(opt) ? cur.filter(x => x !== opt) : [...cur, opt]);
+    }
+
+    return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {options.map(opt => {
+                const active = multi ? (selected || []).includes(opt) : selected === opt;
+                return (
+                    <button
+                        key={opt}
+                        type="button"
+                        onClick={() => toggle(opt)}
+                        style={{
+                            padding: '8px 14px',
+                            borderRadius: '100px',
+                            border: active ? '1px solid var(--accent)' : '1px solid var(--border-light)',
+                            background: active ? 'var(--accent-dim)' : 'transparent',
+                            color: active ? 'var(--accent)' : 'var(--text-muted)',
+                            fontSize: '12px',
+                            fontFamily: 'monospace',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                        }}
+                    >
+                        {opt}
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+function Field({ label, children }) {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>{label}</label>
+            {children}
+        </div>
+    );
+}
+
+function TextInput({ value, onChange, placeholder }) {
+    return (
+        <input
+            className="waitlist-input"
+            value={value || ''}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+        />
+    );
+}
+
+// ─── Role configs ─────────────────────────────────────────────────────────────
+
+const CONFIGS = {
+    guest: {
+        title: 'Benvenuto in Sicilia.',
+        subtitle: 'Tre domande per personalizzare la tua esperienza.',
+        steps: [
+            {
+                heading: 'Come lavori?',
+                fields: ['work_type', 'profession', 'skills'],
+            },
+            {
+                heading: 'Come preferisci soggiornare?',
+                fields: ['preferred_stay_duration', 'has_vehicle', 'interests'],
+            },
+            {
+                heading: 'Dove trovarti online? (opzionale)',
+                fields: ['linkedin_url', 'portfolio_url'],
+                optional: true,
+            },
+        ],
+    },
+    property_manager: {
+        title: 'Benvenuto, Host.',
+        subtitle: 'Configura il tuo profilo per attrarre i nomadi giusti.',
+        steps: [
+            {
+                heading: 'La tua struttura',
+                fields: ['manager_city', 'wifi_speed', 'workspace'],
+            },
+            {
+                heading: 'Il tuo profilo host',
+                fields: ['phone', 'years_experience', 'manager_bio'],
+            },
+        ],
+    },
+    activity_manager: {
+        title: 'Benvenuto, Guide.',
+        subtitle: 'Raccontaci la tua esperienza per matchare con i nomadi.',
+        steps: [
+            {
+                heading: 'La tua esperienza',
+                fields: ['years_experience', 'team_size', 'certifications'],
+            },
+            {
+                heading: 'Come operi',
+                fields: ['languages_spoken', 'phone', 'manager_bio'],
+            },
+        ],
+    },
+};
+
+function renderField(fieldId, data, setData) {
+    const set = (key, val) => setData(prev => ({ ...prev, [key]: val }));
+
+    switch (fieldId) {
+        case 'work_type':
+            return (
+                <Field label="Che tipo di lavoratore sei?">
+                    <ChipSelect
+                        options={['Freelance', 'Dipendente remoto', 'Imprenditore', 'Studente']}
+                        value={data.work_type}
+                        onChange={v => set('work_type', v)}
+                    />
+                </Field>
+            );
+        case 'profession':
+            return (
+                <Field label="Qual è la tua professione?">
+                    <TextInput value={data.profession} onChange={v => set('profession', v)} placeholder="es. UI Designer, Developer, Copywriter" />
+                </Field>
+            );
+        case 'skills':
+            return (
+                <Field label="Le tue competenze principali">
+                    <ChipSelect
+                        multi
+                        options={['Design', 'Development', 'Marketing', 'Copywriting', 'Photo/Video', 'Consulenza', 'Finance', 'HR', 'Product', 'Altro']}
+                        value={data.skills}
+                        onChange={v => set('skills', v)}
+                    />
+                </Field>
+            );
+        case 'preferred_stay_duration':
+            return (
+                <Field label="Quanto pensi di restare?">
+                    <ChipSelect
+                        options={['< 2 settimane', '2–4 settimane', '1–3 mesi', '3–6 mesi', 'Più di 6 mesi']}
+                        value={data.preferred_stay_duration}
+                        onChange={v => set('preferred_stay_duration', v)}
+                    />
+                </Field>
+            );
+        case 'has_vehicle':
+            return (
+                <Field label="Hai un veicolo?">
+                    <ChipSelect
+                        options={['Sì, ho un'auto', 'No, preferisco mezzi pubblici', 'Noleggerò in loco']}
+                        value={data.has_vehicle_label}
+                        onChange={v => {
+                            set('has_vehicle_label', v);
+                            set('has_vehicle', v.startsWith('Sì'));
+                        }}
+                    />
+                </Field>
+            );
+        case 'interests':
+            return (
+                <Field label="Cosa ti interessa di più?">
+                    <ChipSelect
+                        multi
+                        options={['Surf / Mare', 'Yoga & Wellness', 'Food & Wine', 'Trekking / Etna', 'Cultura & Storia', 'Fotografia', 'Networking', 'Silenzio & Focus']}
+                        value={data.interests}
+                        onChange={v => set('interests', v)}
+                    />
+                </Field>
+            );
+        case 'linkedin_url':
+            return (
+                <Field label="LinkedIn">
+                    <TextInput value={data.linkedin_url} onChange={v => set('linkedin_url', v)} placeholder="linkedin.com/in/tuonome" />
+                </Field>
+            );
+        case 'portfolio_url':
+            return (
+                <Field label="Portfolio / Sito web">
+                    <TextInput value={data.portfolio_url} onChange={v => set('portfolio_url', v)} placeholder="tuosito.com" />
+                </Field>
+            );
+        case 'manager_city':
+            return (
+                <Field label="In quale comune si trova la struttura?">
+                    <ChipSelect
+                        options={['Ragusa', 'Modica', 'Scicli', 'Pozzallo', 'Marina di Ragusa', 'Vittoria', 'Santa Croce Camerina', 'Ispica', 'Chiaramonte Gulfi', 'Giarratana', 'Altro']}
+                        value={data.manager_city}
+                        onChange={v => set('manager_city', v)}
+                    />
+                </Field>
+            );
+        case 'wifi_speed':
+            return (
+                <Field label="Velocità media del WiFi">
+                    <ChipSelect
+                        options={['< 30 Mbps', '30–100 Mbps', '100–300 Mbps', 'Fibra > 300 Mbps', 'Starlink']}
+                        value={data.wifi_speed}
+                        onChange={v => set('wifi_speed', v)}
+                    />
+                </Field>
+            );
+        case 'workspace':
+            return (
+                <Field label="Postazione di lavoro disponibile?">
+                    <ChipSelect
+                        options={['Scrivania ergonomica dedicata', 'Tavolo generico', 'Area comune condivisa', 'Nessuna postazione']}
+                        value={data.workspace}
+                        onChange={v => set('workspace', v)}
+                    />
+                </Field>
+            );
+        case 'phone':
+            return (
+                <Field label="Numero di telefono (per gli ospiti)">
+                    <TextInput value={data.phone} onChange={v => set('phone', v)} placeholder="+39 320 000 0000" />
+                </Field>
+            );
+        case 'years_experience':
+            return (
+                <Field label="Anni di esperienza nel settore">
+                    <ChipSelect
+                        options={['Primo anno', '1–3 anni', '4–10 anni', 'Oltre 10 anni']}
+                        value={data.years_experience}
+                        onChange={v => set('years_experience', v)}
+                    />
+                </Field>
+            );
+        case 'manager_bio':
+            return (
+                <Field label="Presentati in 2 righe">
+                    <textarea
+                        className="waitlist-input"
+                        value={data.manager_bio || ''}
+                        onChange={e => set('manager_bio', e.target.value)}
+                        placeholder="Racconta chi sei e cosa rende speciale la tua offerta…"
+                        rows={3}
+                        style={{ resize: 'none', fontFamily: 'inherit', fontSize: '14px' }}
+                    />
+                </Field>
+            );
+        case 'certifications':
+            return (
+                <Field label="Certificazioni o abilitazioni">
+                    <ChipSelect
+                        multi
+                        options={['Istruttore federale', 'Bagnino / BLSD', 'Guida turistica', 'Brevetto nautico', 'Certificazione yoga', 'Sommelier', 'Altro']}
+                        value={data.certifications}
+                        onChange={v => set('certifications', v)}
+                    />
+                </Field>
+            );
+        case 'team_size':
+            return (
+                <Field label="Dimensione del team">
+                    <ChipSelect
+                        options={['Solo io', '2–5 persone', '6–15 persone', 'Grande organizzazione']}
+                        value={data.team_size}
+                        onChange={v => set('team_size', v)}
+                    />
+                </Field>
+            );
+        case 'languages_spoken':
+            return (
+                <Field label="In quali lingue guidi?">
+                    <ChipSelect
+                        multi
+                        options={['Italiano', 'Inglese', 'Francese', 'Tedesco', 'Spagnolo', 'Altro']}
+                        value={data.languages_spoken}
+                        onChange={v => set('languages_spoken', v)}
+                    />
+                </Field>
+            );
+        default:
+            return null;
+    }
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function OnboardingOverlay() {
     const { user, updateProfile } = useAuth();
-    const { t } = useI18n();
-    const [step, setStep] = useState(1);
-    const [loading, setLoading] = useState(false);
+    const [step, setStep] = useState(0);
     const [data, setData] = useState({});
+    const [saving, setSaving] = useState(false);
 
     if (!user) return null;
 
-    // Check DB flag OR localStorage fallback (resilient even without migrations)
     const localKey = `onboarded_${user.id}`;
     if (user.onboarded || localStorage.getItem(localKey) === 'true') return null;
 
-    const handleComplete = async () => {
-        setLoading(true);
-        // Mark locally immediately so overlay won't reappear on next render
-        localStorage.setItem(localKey, 'true');
-        await updateProfile({
-            onboarded: true,
-            stats_metadata: { ...data, completed_at: new Date().toISOString() }
+    const config = CONFIGS[user.role] || CONFIGS.guest;
+    const totalSteps = config.steps.length;
+    const currentStep = config.steps[step];
+    const isLast = step === totalSteps - 1;
+
+    function canAdvance() {
+        if (currentStep.optional) return true;
+        // At least one required field has a value
+        const required = currentStep.fields.filter(f => !['linkedin_url', 'portfolio_url', 'phone', 'manager_bio'].includes(f));
+        return required.every(f => {
+            const val = data[f];
+            return val !== undefined && val !== '' && val !== null && (!Array.isArray(val) || val.length > 0);
         });
-        setLoading(false);
-    };
+    }
 
-    const roles = {
-        guest: {
-            title: 'Personalizza la tua esperienza',
-            subtitle: 'Aiutaci a farti scoprire la Sicilia migliore per te.',
-            questions: [
-                {
-                    id: 'interests',
-                    label: 'Cosa ti interessa di più?',
-                    type: 'multiselect',
-                    options: ['Surf / Mare', 'Yoga & Wellness', 'Food & Wine', 'Escursioni / Etna', 'Cultura & Storia', 'Networking']
-                },
-                {
-                    id: 'stay_duration',
-                    label: 'Quanto tempo pensi di restare in Sicilia?',
-                    type: 'select',
-                    options: ['Meno di 2 settimane', '2-4 settimane', '1-3 mesi', 'Più di 3 mesi']
-                }
-            ]
-        },
-        activity_manager: {
-            title: 'Benvenuto a bordo, Manager',
-            subtitle: 'Aiutaci a capire come supportare il tuo business.',
-            questions: [
-                {
-                    id: 'years_exp',
-                    label: 'Da quanti anni operi nel settore?',
-                    type: 'select',
-                    options: ['Debuttante', '1-3 anni', '4-10 anni', 'Oltre 10 anni']
-                },
-                {
-                    id: 'team_size',
-                    label: 'Quanto è grande il tuo team?',
-                    type: 'select',
-                    options: ['Solo io', '2-5 persone', '6-15 persone', 'Grande azienda']
-                }
-            ]
-        },
-        property_manager: {
-            title: 'Ottimizza la tua proprietà',
-            subtitle: 'I nomadi digitali cercano standard specifici.',
-            questions: [
-                {
-                    id: 'wifi_speed',
-                    label: 'Velocità media del Wifi (Mbps)',
-                    type: 'select',
-                    options: ['< 30 Mbps', '30-100 Mbps', '100-300 Mbps', 'Fibra > 300 Mbps']
-                },
-                {
-                    id: 'workspace',
-                    label: 'Disponi di una postazione lavoro dedicata?',
-                    type: 'select',
-                    options: ['Sì, scrivania e sedia ergonomica', 'Sì, tavolo generico', 'No']
-                }
-            ]
+    async function handleNext() {
+        if (isLast) {
+            setSaving(true);
+            localStorage.setItem(localKey, 'true');
+
+            // Map collected data to proper profile fields
+            const profileUpdate = {
+                onboarded: true,
+                stats_metadata: { interests: data.interests, completed_at: new Date().toISOString() },
+            };
+
+            const directFields = [
+                'work_type', 'profession', 'skills', 'preferred_stay_duration', 'has_vehicle',
+                'linkedin_url', 'portfolio_url', 'phone', 'manager_bio', 'manager_city',
+                'certifications', 'team_size', 'languages_spoken', 'years_experience',
+            ];
+            directFields.forEach(f => {
+                if (data[f] !== undefined && data[f] !== '') profileUpdate[f] = data[f];
+            });
+
+            // wifi_speed and workspace go into role_metadata
+            if (data.wifi_speed || data.workspace) {
+                profileUpdate.role_metadata = {
+                    wifi_speed: data.wifi_speed,
+                    workspace: data.workspace,
+                };
+            }
+
+            await updateProfile(profileUpdate);
+            setSaving(false);
+        } else {
+            setStep(s => s + 1);
         }
-    };
-
-    const config = roles[user.role] || roles.guest;
+    }
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-bg/80 backdrop-blur-sm animate-fade-in" style={{ backgroundColor: 'rgba(var(--bg-rgb, 0,0,0), 0.8)' }}>
-            <div className="bg-surface border border-border-light rounded-2xl p-8 max-w-lg w-full shadow-2xl relative overflow-hidden">
-                {/* Background Glow */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-3xl rounded-full -mr-32 -mt-32 pointer-events-none" />
+        <div
+            style={{
+                position: 'fixed', inset: 0, zIndex: 9999,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '24px',
+                background: 'rgba(0,0,0,0.75)',
+                backdropFilter: 'blur(6px)',
+            }}
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                style={{
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: '16px',
+                    padding: '40px',
+                    width: '100%',
+                    maxWidth: '520px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Ambient glow */}
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(212,168,83,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-                <div className="relative">
-                    <div className="text-xs font-mono tracking-widest uppercase text-accent mb-2">Configurazione Profilo</div>
-                    <h2 className="text-2xl font-serif text-textPrimary mb-2">{config.title}</h2>
-                    <p className="text-sm text-textMuted mb-8">{config.subtitle}</p>
+                {/* Header */}
+                <div style={{ marginBottom: '32px' }}>
+                    <div style={{ fontSize: '11px', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '8px' }}>
+                        {step + 1} / {totalSteps}
+                    </div>
+                    {step === 0 && (
+                        <>
+                            <h2 style={{ fontFamily: 'serif', fontSize: '24px', color: 'var(--text-primary)', margin: '0 0 6px' }}>{config.title}</h2>
+                            <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>{config.subtitle}</p>
+                        </>
+                    )}
+                    {step > 0 && (
+                        <h2 style={{ fontFamily: 'serif', fontSize: '22px', color: 'var(--text-primary)', margin: 0 }}>{currentStep.heading}</h2>
+                    )}
+                </div>
 
-                    <div className="space-y-6">
-                        {config.questions.map(q => (
-                            <div key={q.id} className="flex flex-col gap-3">
-                                <label className="text-sm font-medium text-textPrimary">{q.label}</label>
-                                {q.type === 'select' && (
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {q.options.map(opt => (
-                                            <button
-                                                key={opt}
-                                                onClick={() => setData(prev => ({ ...prev, [q.id]: opt }))}
-                                                className={`text-left px-4 py-3 rounded-lg border text-sm transition-all ${data[q.id] === opt ? 'border-accent bg-accent-dim text-accent' : 'border-border-light bg-surfaceHover/30 text-textMuted hover:border-textMuted/50'}`}
-                                            >
-                                                {opt}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                                {q.type === 'multiselect' && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {q.options.map(opt => {
-                                            const isSelected = (data[q.id] || []).includes(opt);
-                                            return (
-                                                <button
-                                                    key={opt}
-                                                    onClick={() => {
-                                                        const current = data[q.id] || [];
-                                                        const next = isSelected ? current.filter(i => i !== opt) : [...current, opt];
-                                                        setData(prev => ({ ...prev, [q.id]: next }));
-                                                    }}
-                                                    className={`px-3 py-1.5 rounded-full border text-[11px] font-mono tracking-wide transition-all ${isSelected ? 'border-accent bg-accent text-black font-bold' : 'border-border-light bg-surfaceHover/30 text-textMuted hover:border-textMuted/50'}`}
-                                                >
-                                                    {opt}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
+                {/* Step heading (step 0 only shows config title above, so skip) */}
+                {step === 0 && (
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '20px', fontFamily: 'monospace', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                        {currentStep.heading}
+                    </div>
+                )}
+
+                {/* Fields */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={step}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.25, ease: EASE }}
+                        style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+                    >
+                        {currentStep.fields.map(f => (
+                            <div key={f}>{renderField(f, data, setData)}</div>
+                        ))}
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Footer */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '36px' }}>
+                    {/* Progress dots */}
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        {Array.from({ length: totalSteps }).map((_, i) => (
+                            <div
+                                key={i}
+                                style={{
+                                    height: '3px',
+                                    borderRadius: '2px',
+                                    background: i <= step ? 'var(--accent)' : 'var(--border)',
+                                    width: i === step ? '24px' : '8px',
+                                    transition: 'all 0.3s',
+                                }}
+                            />
                         ))}
                     </div>
 
-                    <div className="mt-10 flex items-center justify-between">
-                        <div className="flex gap-1.5">
-                            {[1].map(i => (
-                                <div key={i} className={`h-1 rounded-full ${step >= i ? 'w-8 bg-accent' : 'w-4 bg-border'}`} />
-                            ))}
-                        </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        {step > 0 && (
+                            <button
+                                onClick={() => setStep(s => s - 1)}
+                                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '13px', fontFamily: 'monospace', cursor: 'pointer', padding: '10px 16px' }}
+                            >
+                                ← Indietro
+                            </button>
+                        )}
                         <button
-                            onClick={handleComplete}
-                            disabled={loading || Object.keys(data).length < config.questions.length}
-                            className="btn-gold px-8 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-gold"
+                            onClick={handleNext}
+                            disabled={saving || !canAdvance()}
+                            style={{ padding: '12px 28px', fontSize: '0.9rem', opacity: canAdvance() ? 1 : 0.4 }}
                         >
-                            {loading ? 'Salvataggio...' : 'Completa →'}
+                            {saving ? 'Salvataggio…' : isLast ? 'Completa →' : 'Avanti →'}
                         </button>
                     </div>
                 </div>
-            </div>
+
+                {/* Skip (last step only if optional) */}
+                {currentStep.optional && (
+                    <button
+                        onClick={handleNext}
+                        style={{ display: 'block', margin: '16px auto 0', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', fontFamily: 'monospace', cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                        Salta questo passaggio
+                    </button>
+                )}
+            </motion.div>
         </div>
     );
 }

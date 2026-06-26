@@ -3,7 +3,7 @@ import { supabaseAdmin } from './_lib/supabase-admin.js';
 import { getAuthUser } from './_lib/auth.js';
 import { parseBody } from './_lib/body.js';
 
-const PLATFORM_FEE_PERCENT = 0.07;
+const PLATFORM_FEE_PERCENT = 0.10;
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {

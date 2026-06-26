@@ -33,14 +33,18 @@ export default async function handler(req, res) {
 
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                const bookingId = session.metadata?.booking_id;
-                const ownerId = session.metadata?.owner_id;
+                const userId = session.metadata?.user_id;
 
-                if (!bookingId) {
-                    console.warn('checkout.session.completed: missing booking_id in metadata');
+                // Support both booking_ids (multi-cart) and legacy booking_id (single)
+                const rawIds = session.metadata?.booking_ids || session.metadata?.booking_id || '';
+                const bookingIds = rawIds.split(',').map(s => s.trim()).filter(Boolean);
+
+                if (bookingIds.length === 0) {
+                    console.warn('checkout.session.completed: no booking ids in metadata');
                     break;
                 }
 
+                // Confirm all bookings in this checkout
                 await supabaseAdmin
                     .from('bookings')
                     .update({
@@ -48,31 +52,40 @@ export default async function handler(req, res) {
                         payment_status: 'paid',
                         stripe_payment_intent_id: session.payment_intent,
                     })
-                    .eq('id', bookingId);
+                    .in('id', bookingIds);
 
-                // Fetch minimal booking data for the audit record
-                const { data: booking } = await supabaseAdmin
+                // Fetch booking data for audit records
+                const { data: bookings } = await supabaseAdmin
                     .from('bookings')
-                    .select('user_id, platform_fee, manager_payout')
-                    .eq('id', bookingId)
-                    .single();
+                    .select('id, user_id, platform_fee, manager_payout')
+                    .in('id', bookingIds);
 
-                if (booking) {
-                    await supabaseAdmin.from('payments').insert([{
-                        booking_id: bookingId,
+                if (bookings?.length) {
+                    const paymentRows = bookings.map(b => ({
+                        booking_id: b.id,
                         stripe_payment_intent_id: session.payment_intent,
-                        amount: booking.platform_fee + booking.manager_payout,
-                        platform_fee: booking.platform_fee,
-                        manager_payout: booking.manager_payout,
+                        amount: b.platform_fee + b.manager_payout,
+                        platform_fee: b.platform_fee,
+                        manager_payout: b.manager_payout,
                         currency: 'eur',
                         status: 'completed',
-                        // transfer_data is on the payment_intent, not the checkout session object
                         manager_stripe_account_id: null,
-                        guest_user_id: booking.user_id,
-                        manager_user_id: ownerId || null,
-                    }]);
+                        guest_user_id: b.user_id,
+                        manager_user_id: null,
+                    }));
+                    await supabaseAdmin.from('payments').insert(paymentRows);
                 }
-                console.log(`Booking ${bookingId} confirmed (PI: ${session.payment_intent})`);
+
+                // Upgrade to premium if membership was purchased
+                if (session.metadata?.has_membership === 'true' && userId) {
+                    await supabaseAdmin
+                        .from('profiles')
+                        .update({ is_premium: true })
+                        .eq('id', userId);
+                    console.log(`User ${userId} upgraded to premium`);
+                }
+
+                console.log(`Bookings confirmed: ${bookingIds.join(', ')} (PI: ${session.payment_intent})`);
                 break;
             }
 

@@ -92,84 +92,203 @@ const BookingCard = memo(function BookingCard({ booking, onCancel }) {
     );
 });
 
+function ProfileField({ label, children }) {
+    return (
+        <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{label}</label>
+            {children}
+        </div>
+    );
+}
+
+function TagsInput({ value, onChange, placeholder }) {
+    const tags = Array.isArray(value) ? value : (value || '').split(',').map(s => s.trim()).filter(Boolean);
+    const [input, setInput] = useState('');
+
+    function add() {
+        const v = input.trim();
+        if (v && !tags.includes(v)) onChange([...tags, v]);
+        setInput('');
+    }
+
+    function remove(tag) { onChange(tags.filter(t => t !== tag)); }
+
+    return (
+        <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: tags.length ? '8px' : 0 }}>
+                {tags.map(tag => (
+                    <span key={tag} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', borderRadius: '100px', background: 'var(--accent-dim)', border: '1px solid rgba(212,168,83,0.3)', fontSize: '11px', fontFamily: 'monospace', color: 'var(--accent)' }}>
+                        {tag}
+                        <button type="button" onClick={() => remove(tag)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', padding: 0, lineHeight: 1, fontSize: '13px' }}>×</button>
+                    </span>
+                ))}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                    className="waitlist-input"
+                    style={{ flex: 1 }}
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+                    placeholder={placeholder}
+                />
+                <button type="button" onClick={add} className="btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem', flexShrink: 0 }}>+</button>
+            </div>
+        </div>
+    );
+}
+
+function VerificationBadge({ status }) {
+    const map = {
+        verified: { label: 'Verificato', color: '#4ade80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)' },
+        pending: { label: 'In revisione', color: 'var(--accent)', bg: 'var(--accent-dim)', border: 'rgba(212,168,83,0.2)' },
+        rejected: { label: 'Non verificato', color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.2)' },
+    };
+    const s = map[status] || map.pending;
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderRadius: '8px', background: s.bg, border: `1px solid ${s.border}` }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+            <span style={{ fontSize: '12px', fontFamily: 'monospace', color: s.color }}>{s.label}</span>
+            {status === 'pending' && (
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '4px' }}>— Il team Digitalands verificherà il profilo entro 48h</span>
+            )}
+        </div>
+    );
+}
+
 const ProfileSection = memo(function ProfileSection({ user, onUpdate }) {
-    const { t } = useI18n();
+    const role = user.role || 'guest';
+
     const [form, setForm] = useState({
-        name: user.name,
-        email: user.email,
-        employment_type: user.employment_type || 'freelance',
+        name: user.name || '',
+        bio: user.bio || '',
+        phone: user.phone || '',
+        // nomad
+        work_type: user.work_type || '',
         profession: user.profession || '',
+        skills: user.skills || [],
+        linkedin_url: user.linkedin_url || '',
+        portfolio_url: user.portfolio_url || '',
+        // manager shared
+        manager_bio: user.manager_bio || '',
+        manager_city: user.manager_city || '',
+        // property manager
         vat_number: user.vat_number || '',
-        company_name: user.company_name || '',
-        company_role: user.company_role || ''
+        // activity manager
+        years_experience: user.years_experience || '',
+        team_size: user.team_size || '',
+        certifications: user.certifications || [],
+        languages_spoken: user.languages_spoken || [],
     });
     const [saved, setSaved] = useState(false);
+    const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
-    function handleSave(e) {
+    async function handleSave(e) {
         e.preventDefault();
-        onUpdate(form);
+        await onUpdate(form);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        setTimeout(() => setSaved(false), 2500);
     }
 
     return (
-        <form onSubmit={handleSave} className="space-y-4 max-w-md">
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-mono tracking-widest uppercase text-textMuted">Nome</label>
-                <input className="waitlist-input" value={form.name}
-                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            </div>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '480px' }}>
 
-            {/* Employment Type Selector */}
-            <div className="flex flex-col gap-2">
-                <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_employment_type')}</label>
-                <div className="flex gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setForm(f => ({ ...f, employment_type: 'freelance' }))}
-                        className={`flex-1 py-2 text-[11px] font-mono rounded border transition-all ${form.employment_type === 'freelance' ? 'border-accent bg-accent-dim text-accent' : 'border-border-light text-textMuted'}`}
-                    >
-                        {t('auth_freelance')}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setForm(f => ({ ...f, employment_type: 'employee' }))}
-                        className={`flex-1 py-2 text-[11px] font-mono rounded border transition-all ${form.employment_type === 'employee' ? 'border-accent bg-accent-dim text-accent' : 'border-border-light text-textMuted'}`}
-                    >
-                        {t('auth_employee')}
-                    </button>
-                </div>
-            </div>
+            {/* ── Shared: nome ── */}
+            <ProfileField label="Nome">
+                <input className="waitlist-input" value={form.name} onChange={e => set('name', e.target.value)} />
+            </ProfileField>
 
-            {form.employment_type === 'freelance' ? (
+            {/* ── NOMAD ── */}
+            {role === 'guest' && (
                 <>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_profession')}</label>
-                        <input className="waitlist-input" value={form.profession}
-                            onChange={e => setForm(f => ({ ...f, profession: e.target.value }))} />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_vat')}</label>
-                        <input className="waitlist-input" value={form.vat_number}
-                            onChange={e => setForm(f => ({ ...f, vat_number: e.target.value }))} />
-                    </div>
-                </>
-            ) : (
-                <>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_company_role')}</label>
-                        <input className="waitlist-input" value={form.company_role}
-                            onChange={e => setForm(f => ({ ...f, company_role: e.target.value }))} />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_company')}</label>
-                        <input className="waitlist-input" value={form.company_name}
-                            onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))} />
-                    </div>
+                    <ProfileField label="Professione">
+                        <input className="waitlist-input" value={form.profession} onChange={e => set('profession', e.target.value)} placeholder="es. UI Designer" />
+                    </ProfileField>
+                    <ProfileField label="Tipo di lavoro">
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {['Freelance', 'Dipendente remoto', 'Imprenditore', 'Studente'].map(opt => (
+                                <button key={opt} type="button" onClick={() => set('work_type', opt)}
+                                    style={{ padding: '7px 13px', borderRadius: '100px', fontSize: '12px', fontFamily: 'monospace', cursor: 'pointer', border: form.work_type === opt ? '1px solid var(--accent)' : '1px solid var(--border-light)', background: form.work_type === opt ? 'var(--accent-dim)' : 'transparent', color: form.work_type === opt ? 'var(--accent)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </ProfileField>
+                    <ProfileField label="Competenze (premi Invio per aggiungere)">
+                        <TagsInput value={form.skills} onChange={v => set('skills', v)} placeholder="es. Design" />
+                    </ProfileField>
+                    <ProfileField label="LinkedIn">
+                        <input className="waitlist-input" value={form.linkedin_url} onChange={e => set('linkedin_url', e.target.value)} placeholder="linkedin.com/in/tuonome" />
+                    </ProfileField>
+                    <ProfileField label="Portfolio / Sito">
+                        <input className="waitlist-input" value={form.portfolio_url} onChange={e => set('portfolio_url', e.target.value)} placeholder="tuosito.com" />
+                    </ProfileField>
                 </>
             )}
 
-            <button type="submit" className="btn-gold" style={{ padding: '11px 24px', fontSize: '0.85rem' }}>
+            {/* ── PROPERTY MANAGER ── */}
+            {role === 'property_manager' && (
+                <>
+                    <ProfileField label="Stato verifica">
+                        <VerificationBadge status={user.verification_status || 'pending'} />
+                    </ProfileField>
+                    <ProfileField label="Telefono (visibile agli ospiti)">
+                        <input className="waitlist-input" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+39 320 000 0000" />
+                    </ProfileField>
+                    <ProfileField label="Comune della struttura">
+                        <input className="waitlist-input" value={form.manager_city} onChange={e => set('manager_city', e.target.value)} placeholder="es. Ragusa" />
+                    </ProfileField>
+                    <ProfileField label="Partita IVA">
+                        <input className="waitlist-input" value={form.vat_number} onChange={e => set('vat_number', e.target.value)} placeholder="PI123456789" />
+                    </ProfileField>
+                    <ProfileField label="Presentazione host">
+                        <textarea className="waitlist-input" rows={3} value={form.manager_bio} onChange={e => set('manager_bio', e.target.value)} placeholder="Racconta chi sei e cosa rende speciale la tua struttura…" style={{ resize: 'none', fontFamily: 'inherit', fontSize: '14px' }} />
+                    </ProfileField>
+                </>
+            )}
+
+            {/* ── ACTIVITY MANAGER ── */}
+            {role === 'activity_manager' && (
+                <>
+                    <ProfileField label="Stato verifica">
+                        <VerificationBadge status={user.verification_status || 'pending'} />
+                    </ProfileField>
+                    <ProfileField label="Telefono (visibile ai clienti)">
+                        <input className="waitlist-input" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+39 320 000 0000" />
+                    </ProfileField>
+                    <ProfileField label="Anni di esperienza">
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {['Primo anno', '1–3 anni', '4–10 anni', 'Oltre 10 anni'].map(opt => (
+                                <button key={opt} type="button" onClick={() => set('years_experience', opt)}
+                                    style={{ padding: '7px 13px', borderRadius: '100px', fontSize: '12px', fontFamily: 'monospace', cursor: 'pointer', border: form.years_experience === opt ? '1px solid var(--accent)' : '1px solid var(--border-light)', background: form.years_experience === opt ? 'var(--accent-dim)' : 'transparent', color: form.years_experience === opt ? 'var(--accent)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </ProfileField>
+                    <ProfileField label="Dimensione team">
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {['Solo io', '2–5 persone', '6–15 persone', 'Grande organizzazione'].map(opt => (
+                                <button key={opt} type="button" onClick={() => set('team_size', opt)}
+                                    style={{ padding: '7px 13px', borderRadius: '100px', fontSize: '12px', fontFamily: 'monospace', cursor: 'pointer', border: form.team_size === opt ? '1px solid var(--accent)' : '1px solid var(--border-light)', background: form.team_size === opt ? 'var(--accent-dim)' : 'transparent', color: form.team_size === opt ? 'var(--accent)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </ProfileField>
+                    <ProfileField label="Certificazioni">
+                        <TagsInput value={form.certifications} onChange={v => set('certifications', v)} placeholder="es. Istruttore federale" />
+                    </ProfileField>
+                    <ProfileField label="Lingue in cui guidi">
+                        <TagsInput value={form.languages_spoken} onChange={v => set('languages_spoken', v)} placeholder="es. Italiano" />
+                    </ProfileField>
+                    <ProfileField label="Presentazione guida">
+                        <textarea className="waitlist-input" rows={3} value={form.manager_bio} onChange={e => set('manager_bio', e.target.value)} placeholder="Racconta la tua storia e le tue esperienze…" style={{ resize: 'none', fontFamily: 'inherit', fontSize: '14px' }} />
+                    </ProfileField>
+                </>
+            )}
+
+            <button type="submit" className="btn-gold" style={{ padding: '12px 28px', fontSize: '0.875rem', alignSelf: 'flex-start' }}>
                 {saved ? '✓ Salvato' : 'Salva modifiche'}
             </button>
         </form>

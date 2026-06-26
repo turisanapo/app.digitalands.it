@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const TABLES = ['profiles', 'bookings', 'activities', 'properties', 'reviews'];
 
 export default function BackendDiagnostic() {
+    const { user, loading } = useAuth();
+    if (loading) return null;
+    if (!user || !user.is_admin) return <Navigate to="/" replace />;
+
     const [status, setStatus] = useState({
         connection: 'testing',
         tables: {},
@@ -77,8 +82,11 @@ export default function BackendDiagnostic() {
             {/* Connection State */}
             <div style={cardStyle}>
                 <h3 style={{ marginTop: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Status Connessione</h3>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', borderLeft: `4px solid ${status.connection === 'success' ? '#4ade80' : status.connection === 'failed' ? '#f87171' : 'var(--accent)'}`, paddingLeft: '16px', margin: '16px 0' }}>
-                    {status.connection.toUpperCase()}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0, background: status.connection === 'success' ? '#4ade80' : status.connection === 'failed' ? '#f87171' : 'var(--accent)' }} />
+                    <span style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        {status.connection.toUpperCase()}
+                    </span>
                 </div>
                 {status.error && <pre style={{ background: 'rgba(248,113,113,0.1)', padding: '12px', borderRadius: '4px', fontSize: '12px', color: '#f87171', overflow: 'auto' }}>{status.error}</pre>}
             </div>

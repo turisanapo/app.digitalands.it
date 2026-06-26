@@ -7,12 +7,87 @@
 
 -- ─── PROFILES ─────────────────────────────────────────────────────
 
--- 1. Add onboarding + Stripe Connect fields (safe if already exist)
+-- 1. Core fields (safe if already exist)
 ALTER TABLE profiles
 ADD COLUMN IF NOT EXISTS onboarded BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS stripe_account_id TEXT DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS stripe_onboarding_complete BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS stripe_charges_enabled BOOLEAN DEFAULT FALSE;
+
+-- 2. Extended profile fields — shared across all roles
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS bio TEXT,
+ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+ADD COLUMN IF NOT EXISTS phone TEXT,
+ADD COLUMN IF NOT EXISTS website_url TEXT,
+ADD COLUMN IF NOT EXISTS city TEXT,
+ADD COLUMN IF NOT EXISTS country TEXT DEFAULT 'IT',
+ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT ARRAY['it'],
+ADD COLUMN IF NOT EXISTS instagram_url TEXT,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- 3. Digital nomad (guest) specific fields
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS work_type TEXT,
+ADD COLUMN IF NOT EXISTS skills TEXT[],
+ADD COLUMN IF NOT EXISTS linkedin_url TEXT,
+ADD COLUMN IF NOT EXISTS portfolio_url TEXT,
+ADD COLUMN IF NOT EXISTS remote_since_year INTEGER,
+ADD COLUMN IF NOT EXISTS preferred_stay_duration TEXT,
+ADD COLUMN IF NOT EXISTS has_vehicle BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS dietary_restrictions TEXT[];
+
+-- 4. Manager shared fields (property_manager + activity_manager)
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS verification_status TEXT DEFAULT 'pending',
+ADD COLUMN IF NOT EXISTS manager_bio TEXT,
+ADD COLUMN IF NOT EXISTS manager_city TEXT;
+
+-- 5. Activity manager specific fields
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS certifications TEXT[],
+ADD COLUMN IF NOT EXISTS years_experience INTEGER,
+ADD COLUMN IF NOT EXISTS team_size TEXT,
+ADD COLUMN IF NOT EXISTS languages_spoken TEXT[];
+
+-- 6. Admin flag
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+
+-- 7. Flexible per-role metadata bucket (for future extensibility)
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS role_metadata JSONB DEFAULT '{}';
+
+-- 8. RLS on profiles
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users read own profile" ON profiles;
+CREATE POLICY "Users read own profile"
+    ON profiles FOR SELECT
+    USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users update own profile" ON profiles;
+CREATE POLICY "Users update own profile"
+    ON profiles FOR UPDATE
+    USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users insert own profile" ON profiles;
+CREATE POLICY "Users insert own profile"
+    ON profiles FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
+-- Public read for verified property/activity managers (shown on listings)
+DROP POLICY IF EXISTS "Public read verified manager profiles" ON profiles;
+CREATE POLICY "Public read verified manager profiles"
+    ON profiles FOR SELECT
+    USING (
+        role IN ('property_manager', 'activity_manager')
+        AND verification_status = 'verified'
+    );
+
+-- 9. Index for role lookups
+CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_verification ON profiles(verification_status);
 
 -- ─── PROPERTIES ───────────────────────────────────────────────────
 

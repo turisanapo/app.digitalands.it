@@ -118,9 +118,9 @@ function RegisterForm({ onSuccess }) {
     const [loading, setLoading] = useState(false);
 
     const roles = [
-        { value: 'guest', label: t('auth_role_guest'), icon: '🏖️' },
-        { value: 'activity_manager', label: t('auth_role_activity'), icon: '🏄' },
-        { value: 'property_manager', label: t('auth_role_property'), icon: '🏡' },
+        { value: 'guest', label: 'Nomade Digitale', icon: '🌊', sub: 'Cerco alloggi e attività' },
+        { value: 'property_manager', label: 'Host', icon: '🏡', sub: 'Affitto la mia struttura' },
+        { value: 'activity_manager', label: 'Guide', icon: '🏄', sub: 'Offro esperienze locali' },
     ];
 
     const [success, setSuccess] = useState(false);
@@ -188,31 +188,30 @@ function RegisterForm({ onSuccess }) {
             {/* Role selector */}
             <div className="flex flex-col gap-2">
                 <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_role_label')}</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col gap-2">
                     {roles.map(r => (
                         <button
                             key={r.value}
                             type="button"
                             onClick={() => setForm(f => ({ ...f, role: r.value }))}
                             style={{
-                                padding: '10px 6px',
+                                padding: '12px 14px',
                                 borderRadius: '8px',
                                 border: form.role === r.value ? '1px solid var(--accent)' : '1px solid var(--border-light)',
                                 background: form.role === r.value ? 'var(--accent-dim)' : 'transparent',
-                                color: form.role === r.value ? 'var(--accent)' : 'var(--text-muted)',
                                 cursor: 'pointer',
-                                fontSize: '11px',
-                                fontFamily: 'monospace',
-                                textAlign: 'center',
+                                textAlign: 'left',
                                 transition: 'all 0.15s',
                                 display: 'flex',
-                                flexDirection: 'column',
                                 alignItems: 'center',
-                                gap: '4px',
+                                gap: '12px',
                             }}
                         >
-                            <span style={{ fontSize: '1.2rem' }}>{r.icon}</span>
-                            <span style={{ lineHeight: 1.2 }}>{r.label}</span>
+                            <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{r.icon}</span>
+                            <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 500, color: form.role === r.value ? 'var(--accent)' : 'var(--text-primary)' }}>{r.label}</span>
+                                <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{r.sub}</span>
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -353,36 +352,6 @@ export default function AuthPage() {
                             ? <LoginForm onSuccess={onSuccess} />
                             : <RegisterForm onSuccess={onSuccess} />
                         }
-
-                        {/* ── Social login divider ── */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0 16px' }}>
-                            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                            <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>oppure continua con</span>
-                            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            {[
-                                { icon: '🔵', label: 'Google', onClick: () => alert('Google login simulato — in una versione con backend questo aprirebbe il flusso OAuth Google.') },
-                                { icon: '', label: 'Apple', onClick: () => alert('Apple login simulato — in una versione con backend questo aprirebbe il flusso OAuth Apple.') },
-                            ].map(btn => (
-                                <button key={btn.label} onClick={btn.onClick}
-                                    style={{
-                                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        gap: '8px', padding: '11px 16px',
-                                        background: 'transparent', border: '1px solid var(--border-light)',
-                                        borderRadius: '8px', cursor: 'pointer',
-                                        fontSize: '13px', fontFamily: 'monospace',
-                                        color: 'var(--text-muted)',
-                                        transition: 'border-color 0.2s, color 0.2s',
-                                    }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-                                >
-                                    <span>{btn.icon}</span>
-                                    <span>{btn.label}</span>
-                                </button>
-                            ))}
-                        </div>
 
                         <p className="text-xs text-textMuted mt-6 text-center">
                             {tab === 'login'
