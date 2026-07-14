@@ -145,7 +145,6 @@ export default function Navbar() {
                         { to: '/activities', label: t('nav_activities') },
                         { to: '/mappa', label: t('nav_map') },
                         { to: '/blog', label: 'Blog' },
-                        { to: '/#partners', label: t('nav_partners'), isHash: true },
                     ].map(link => (
                         <li key={link.label}>
                             {link.isHash ? (
@@ -259,9 +258,6 @@ export default function Navbar() {
                         <Link to="/blog" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
                             Blog
                         </Link>
-                        <a href="/#partners" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
-                            {t('nav_partners')}
-                        </a>
                         <button
                             onClick={() => { setIsCartOpen(true); setMenuOpen(false); }}
                             className="flex items-center gap-3 text-lg font-serif text-accent"

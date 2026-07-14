@@ -14,7 +14,6 @@ import HowItWorks from './components/HowItWorks';
 import Properties from './components/Properties';
 import FoundingMember from './components/FoundingMember';
 import Testimonials from './components/Testimonials';
-import Partners from './components/Partners';
 import WaitlistCTA from './components/WaitlistCTA';
 import ScrollPlayer from './components/ScrollPlayer';
 import { SicilyShowcase } from './remotion/SicilyShowcase';
@@ -67,7 +66,6 @@ function LandingPage() {
             <Properties />
             <FoundingMember />
             <Testimonials />
-            <Partners />
             <WaitlistCTA />
             <Footer />
         </>
