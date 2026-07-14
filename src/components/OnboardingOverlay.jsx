@@ -161,7 +161,7 @@ function renderField(fieldId, data, setData) {
             return (
                 <Field label="Hai un veicolo?">
                     <ChipSelect
-                        options={['Sì, ho un'auto', 'No, preferisco mezzi pubblici', 'Noleggerò in loco']}
+                        options={["Sì, ho un'auto", 'No, preferisco mezzi pubblici', 'Noleggerò in loco']}
                         value={data.has_vehicle_label}
                         onChange={v => {
                             set('has_vehicle_label', v);

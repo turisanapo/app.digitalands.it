@@ -58,7 +58,6 @@ export function AuthProvider({ children }) {
             setUser({
                 ...authUser,
                 ...data,
-                avatar: data.avatar_url || data.name?.charAt(0).toUpperCase(),
                 stats_metadata: data.stats_metadata || {},
                 role_metadata: data.role_metadata || {},
             });
@@ -71,7 +70,7 @@ export function AuthProvider({ children }) {
     async function register({ name, email, password, role = 'guest', ...profileData }) {
         const redirectTo = import.meta.env.VITE_SITE_URL || window.location.origin;
 
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
             email,
             password,
             options: {
@@ -93,13 +92,11 @@ export function AuthProvider({ children }) {
             return { error: error.message };
         }
 
-        console.log('Auth registration successful for:', data.user?.id);
         return { success: true };
     }
 
     async function login({ email, password }) {
-        console.log('Attempting login for:', email);
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
@@ -109,7 +106,6 @@ export function AuthProvider({ children }) {
             return { error: error.message };
         }
 
-        console.log('Login successful for:', email);
         return { success: true };
     }
 

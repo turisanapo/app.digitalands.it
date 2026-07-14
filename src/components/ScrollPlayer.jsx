@@ -1,15 +1,13 @@
 import { useRef, useEffect } from 'react';
 import { Player } from '@remotion/player';
 import { motion } from 'motion/react';
-import { SicilyShowcase } from '../remotion/SicilyShowcase';
+import { EASE_EXPO } from '../utils/motion';
 
-const EASE_EXPO = [0.16, 1, 0.3, 1];
-
-export default function SicilyPlayer() {
+export default function ScrollPlayer({ id, label, component, durationInFrames }) {
     const playerRef = useRef(null);
     const containerRef = useRef(null);
 
-    // Auto-play when 40% visible, pause when not
+    // Auto-play when visible, pause when not
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
@@ -33,29 +31,29 @@ export default function SicilyPlayer() {
     return (
         <section
             style={{ background: 'var(--bg)', padding: '80px 24px 96px' }}
-            id="sicily-showcase"
+            id={id}
         >
             <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-                {/* Section label */}
-                <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-60px' }}
-                    transition={{ duration: 0.6, ease: EASE_EXPO }}
-                    style={{
-                        fontFamily: '"Martian Mono", monospace',
-                        fontSize: '11px',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: 'var(--text-subtle)',
-                        marginBottom: '20px',
-                        textAlign: 'center',
-                    }}
-                >
-                    Un giorno a Marina di Ragusa
-                </motion.p>
+                {label && (
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-60px' }}
+                        transition={{ duration: 0.6, ease: EASE_EXPO }}
+                        style={{
+                            fontFamily: '"Martian Mono", monospace',
+                            fontSize: '11px',
+                            letterSpacing: '0.1em',
+                            textTransform: 'uppercase',
+                            color: 'var(--text-subtle)',
+                            marginBottom: '20px',
+                            textAlign: 'center',
+                        }}
+                    >
+                        {label}
+                    </motion.p>
+                )}
 
-                {/* Player */}
                 <motion.div
                     ref={containerRef}
                     initial={{ opacity: 0, scale: 0.97 }}
@@ -73,10 +71,10 @@ export default function SicilyPlayer() {
                 >
                     <Player
                         ref={playerRef}
-                        component={SicilyShowcase}
+                        component={component}
                         compositionWidth={1400}
                         compositionHeight={613}
-                        durationInFrames={180}
+                        durationInFrames={durationInFrames}
                         fps={30}
                         loop
                         controls={false}

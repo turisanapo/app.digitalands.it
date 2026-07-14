@@ -3,9 +3,15 @@ import { SEED_PROPERTIES } from '../data/seedProperties';
 import { Link } from 'react-router-dom';
 import PropCard from './PropCard';
 import { supabase } from '../lib/supabase';
+import { fetchRatingsMap } from '../utils/ratings';
 
 export default function Properties() {
     const [properties, setProperties] = useState(SEED_PROPERTIES.slice(0, 3));
+    const [ratings, setRatings] = useState({});
+
+    useEffect(() => {
+        fetchRatingsMap('property', properties.map(p => p.id)).then(setRatings);
+    }, [properties]);
 
     useEffect(() => {
         async function fetchDbProperties() {
@@ -51,7 +57,7 @@ export default function Properties() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
                     {properties.map((prop, i) => (
                         <div key={prop.id || prop.name} data-reveal className="reveal" style={{ transitionDelay: `${i * 100}ms` }}>
-                            <PropCard prop={prop} />
+                            <PropCard prop={prop} rating={ratings[String(prop.id)]} />
                         </div>
                     ))}
                 </div>

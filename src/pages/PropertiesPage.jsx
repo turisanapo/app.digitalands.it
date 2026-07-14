@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { SEED_PROPERTIES, COMUNI } from '../data/seedProperties';
 import { useI18n } from '../context/I18nContext';
 import PropCard from '../components/PropCard';
+import { fetchRatingsMap } from '../utils/ratings';
 
 export default function PropertiesPage() {
     const { t } = useI18n();
@@ -49,6 +50,11 @@ export default function PropertiesPage() {
         dbProperties.forEach(p => map.set(p.id, p));
         return Array.from(map.values());
     }, [dbProperties]);
+
+    const [ratings, setRatings] = useState({});
+    useEffect(() => {
+        fetchRatingsMap('property', allProperties.map(p => p.id)).then(setRatings);
+    }, [allProperties]);
 
     const filtered = allProperties.filter(p => {
         const matchesComune = filterComune === 'Tutti' || p.comune === filterComune;
@@ -188,7 +194,7 @@ export default function PropertiesPage() {
                     }}>
                         {filtered.map((p, i) => (
                             <div key={p.id}>
-                                <PropCard prop={p} />
+                                <PropCard prop={p} rating={ratings[String(p.id)]} />
                             </div>
                         ))}
                     </div>

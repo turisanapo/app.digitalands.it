@@ -1,21 +1,15 @@
 import { stripe } from './_lib/stripe.js';
 import { supabaseAdmin } from './_lib/supabase-admin.js';
-import { getAuthUser } from './_lib/auth.js';
+import { requireUser, siteUrl } from './_lib/auth.js';
 import { parseBody } from './_lib/body.js';
 
 const PLATFORM_FEE_PERCENT = 0.10;
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    const user = await requireUser(req, res, 'POST');
+    if (!user) return;
 
     try {
-        const user = await getAuthUser(req);
-        if (!user) {
-            return res.status(401).json({ error: 'Non autenticato.' });
-        }
-
         const body = await parseBody(req);
         const { items, totals } = body;
 
@@ -114,8 +108,6 @@ export default async function handler(req, res) {
         }
 
         // 5. Create Stripe Checkout Session
-        const siteUrl = process.env.VITE_SITE_URL || 'https://digitalands-v2.vercel.app';
-
         const session = await stripe.checkout.sessions.create({
             mode: 'payment',
             payment_method_types: ['card'],
@@ -131,12 +123,10 @@ export default async function handler(req, res) {
         });
 
         // 6. Link session to all created bookings
-        if (bookingIds.length > 0) {
-            await supabaseAdmin
-                .from('bookings')
-                .update({ stripe_checkout_session_id: session.id })
-                .in('id', bookingIds);
-        }
+        await supabaseAdmin
+            .from('bookings')
+            .update({ stripe_checkout_session_id: session.id })
+            .in('id', bookingIds);
 
         return res.status(200).json({ sessionUrl: session.url });
     } catch (err) {

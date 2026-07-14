@@ -50,9 +50,10 @@ ADD COLUMN IF NOT EXISTS years_experience INTEGER,
 ADD COLUMN IF NOT EXISTS team_size TEXT,
 ADD COLUMN IF NOT EXISTS languages_spoken TEXT[];
 
--- 6. Admin flag
+-- 6. Admin + premium flags
 ALTER TABLE profiles
-ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;
 
 -- 7. Flexible per-role metadata bucket (for future extensibility)
 ALTER TABLE profiles
@@ -93,7 +94,9 @@ CREATE INDEX IF NOT EXISTS idx_profiles_verification ON profiles(verification_st
 
 -- 2. Ensure published column exists with correct default
 ALTER TABLE properties
-ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT TRUE;
+ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS map_url TEXT,
+ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';
 
 -- 3. Public read policy
 ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
@@ -134,7 +137,10 @@ CREATE POLICY "Managers read own properties"
 ALTER TABLE activities
 ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS slots JSONB DEFAULT '[]',
-ADD COLUMN IF NOT EXISTS location TEXT DEFAULT NULL;
+ADD COLUMN IF NOT EXISTS location TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS meeting_point TEXT,
+ADD COLUMN IF NOT EXISTS meeting_point_url TEXT,
+ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';
 
 -- 5. Activity RLS policies
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
@@ -200,6 +206,16 @@ CREATE POLICY "Managers read activity bookings"
         )
     );
 
+-- Managers can read bookings for their properties
+DROP POLICY IF EXISTS "Managers read property bookings" ON bookings;
+CREATE POLICY "Managers read property bookings"
+    ON bookings FOR SELECT
+    USING (
+        property_id IN (
+            SELECT id FROM properties WHERE owner_id = auth.uid()
+        )
+    );
+
 -- Service role (API) handles INSERT/UPDATE — bypasses RLS by default
 
 -- ─── PAYMENTS ─────────────────────────────────────────────────────
@@ -233,10 +249,26 @@ CREATE POLICY "Guests read own payments"
     USING (guest_user_id = auth.uid());
 
 -- ─── REVIEWS ──────────────────────────────────────────────────────
--- Real schema uses entity_type + entity_id (polymorphic pattern)
--- DO NOT drop or recreate — just ensure RLS policies exist
+-- Polymorphic pattern: entity_type + entity_id
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('activity', 'property')),
+    entity_id TEXT NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    profiles_id UUID REFERENCES profiles(id) ON DELETE SET NULL
+);
 
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+
+-- Drop legacy duplicate-named policies so only one set remains
+DROP POLICY IF EXISTS "Reviews are viewable by everyone" ON reviews;
+DROP POLICY IF EXISTS "Users can insert their own reviews" ON reviews;
+DROP POLICY IF EXISTS "Users can update their own reviews" ON reviews;
+DROP POLICY IF EXISTS "Users can delete their own reviews" ON reviews;
 
 DROP POLICY IF EXISTS "Public read reviews" ON reviews;
 CREATE POLICY "Public read reviews"
@@ -247,6 +279,54 @@ DROP POLICY IF EXISTS "Users insert own reviews" ON reviews;
 CREATE POLICY "Users insert own reviews"
     ON reviews FOR INSERT
     WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users update own reviews" ON reviews;
+CREATE POLICY "Users update own reviews"
+    ON reviews FOR UPDATE
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users delete own reviews" ON reviews;
+CREATE POLICY "Users delete own reviews"
+    ON reviews FOR DELETE
+    USING (auth.uid() = user_id);
+
+GRANT ALL ON reviews TO anon, authenticated, service_role;
+
+-- ─── STORAGE (image buckets) ──────────────────────────────────────
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('properties', 'properties', true), ('activities', 'activities', true)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Public Access Properties Images" ON storage.objects;
+CREATE POLICY "Public Access Properties Images"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'properties');
+
+DROP POLICY IF EXISTS "Public Access Activities Images" ON storage.objects;
+CREATE POLICY "Public Access Activities Images"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'activities');
+
+DROP POLICY IF EXISTS "Authenticated owners can upload property images" ON storage.objects;
+CREATE POLICY "Authenticated owners can upload property images"
+    ON storage.objects FOR INSERT
+    WITH CHECK (bucket_id = 'properties' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Authenticated owners can upload activity images" ON storage.objects;
+CREATE POLICY "Authenticated owners can upload activity images"
+    ON storage.objects FOR INSERT
+    WITH CHECK (bucket_id = 'activities' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Authenticated owners can delete their property images" ON storage.objects;
+CREATE POLICY "Authenticated owners can delete their property images"
+    ON storage.objects FOR DELETE
+    USING (bucket_id = 'properties' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Authenticated owners can delete their activity images" ON storage.objects;
+CREATE POLICY "Authenticated owners can delete their activity images"
+    ON storage.objects FOR DELETE
+    USING (bucket_id = 'activities' AND auth.role() = 'authenticated');
 
 -- ─── INDEXES ──────────────────────────────────────────────────────
 

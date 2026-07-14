@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
 import ReviewSection from '../components/ReviewSection';
 import { CATEGORIES, CAT_COLORS } from '../data/categories';
+import { fetchRatingsMap } from '../utils/ratings';
 
 const CAT_EMOJI = {
     'Surf': '🏄', 'Kite Surf': '🪁', 'Yoga': '🧘',
@@ -27,28 +28,8 @@ const CategoryBadge = memo(function CategoryBadge({ cat }) {
 });
 
 /* ─── Activity Card ─── */
-const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
-    const [ratingData, setRatingData] = useState({ avg: 0, count: 0 });
-
-    useEffect(() => {
-        async function fetchRating() {
-            try {
-                const { data, error } = await supabase
-                    .from('reviews')
-                    .select('rating')
-                    .eq('entity_type', 'activity')
-                    .eq('entity_id', activity.id.toString());
-
-                if (!error && data && data.length > 0) {
-                    const avg = data.reduce((acc, r) => acc + r.rating, 0) / data.length;
-                    setRatingData({ avg, count: data.length });
-                }
-            } catch (err) {
-                console.error('Error fetching rating for ActivityCard:', err);
-            }
-        }
-        fetchRating();
-    }, [activity.id]);
+const ActivityCard = memo(function ActivityCard({ activity, rating, onBook }) {
+    const ratingData = rating || { avg: 0, count: 0 };
 
     return (
         <div className="card-hover" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
@@ -99,7 +80,11 @@ const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
                     <button
                         className="btn-gold"
                         style={{ padding: '9px 20px', fontSize: '0.82rem' }}
-                        onClick={() => onBook(activity)}
+                        onClick={e => {
+                            // Card is wrapped in a <Link>; stop it from navigating away
+                            e.preventDefault();
+                            onBook(activity);
+                        }}
                     >
                         Prenota
                     </button>
@@ -300,6 +285,11 @@ export default function ActivitiesPage() {
     const [bookingActivity, setBookingActivity] = useState(null);
     const [activities, setActivities] = useState([]);
     const [loadingActivities, setLoadingActivities] = useState(true);
+    const [ratings, setRatings] = useState({});
+
+    useEffect(() => {
+        fetchRatingsMap('activity', activities.map(a => a.id)).then(setRatings);
+    }, [activities]);
 
     useEffect(() => {
         supabase
@@ -443,7 +433,7 @@ export default function ActivitiesPage() {
                     }}>
                         {filtered.map(activity => (
                             <Link key={activity.id} to={`/activity/${activity.id}`} style={{ textDecoration: 'none' }}>
-                                <ActivityCard activity={activity} onBook={handleBook} />
+                                <ActivityCard activity={activity} rating={ratings[String(activity.id)]} onBook={handleBook} />
                             </Link>
                         ))}
                     </div>

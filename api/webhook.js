@@ -57,10 +57,23 @@ export default async function handler(req, res) {
                 // Fetch booking data for audit records
                 const { data: bookings } = await supabaseAdmin
                     .from('bookings')
-                    .select('id, user_id, platform_fee, manager_payout')
+                    .select('id, user_id, property_id, activity_id, platform_fee, manager_payout')
                     .in('id', bookingIds);
 
                 if (bookings?.length) {
+                    const propertyIds = [...new Set(bookings.map(b => b.property_id).filter(Boolean))];
+                    const activityIds = [...new Set(bookings.map(b => b.activity_id).filter(Boolean))];
+                    const [propsRes, actsRes] = await Promise.all([
+                        propertyIds.length
+                            ? supabaseAdmin.from('properties').select('id, owner_id').in('id', propertyIds)
+                            : { data: [] },
+                        activityIds.length
+                            ? supabaseAdmin.from('activities').select('id, owner_id').in('id', activityIds)
+                            : { data: [] },
+                    ]);
+                    const ownerByProperty = Object.fromEntries((propsRes.data || []).map(p => [p.id, p.owner_id]));
+                    const ownerByActivity = Object.fromEntries((actsRes.data || []).map(a => [a.id, a.owner_id]));
+
                     const paymentRows = bookings.map(b => ({
                         booking_id: b.id,
                         stripe_payment_intent_id: session.payment_intent,
@@ -71,7 +84,7 @@ export default async function handler(req, res) {
                         status: 'completed',
                         manager_stripe_account_id: null,
                         guest_user_id: b.user_id,
-                        manager_user_id: null,
+                        manager_user_id: ownerByProperty[b.property_id] ?? ownerByActivity[b.activity_id] ?? null,
                     }));
                     await supabaseAdmin.from('payments').insert(paymentRows);
                 }
@@ -91,15 +104,16 @@ export default async function handler(req, res) {
 
             case 'checkout.session.expired': {
                 const session = event.data.object;
-                const bookingId = session.metadata?.booking_id;
-                if (!bookingId) break;
+                const rawIds = session.metadata?.booking_ids || session.metadata?.booking_id || '';
+                const bookingIds = rawIds.split(',').map(s => s.trim()).filter(Boolean);
+                if (bookingIds.length === 0) break;
 
                 await supabaseAdmin
                     .from('bookings')
                     .update({ status: 'cancellata', payment_status: 'failed' })
-                    .eq('id', bookingId);
+                    .in('id', bookingIds);
 
-                console.log(`Booking ${bookingId} expired`);
+                console.log(`Bookings expired: ${bookingIds.join(', ')}`);
                 break;
             }
 

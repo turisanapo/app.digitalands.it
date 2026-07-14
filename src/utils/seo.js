@@ -1,4 +1,4 @@
-export const SEO_STRUCTURED_DATA = {
+const SEO_STRUCTURED_DATA = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
     "name": "Digitalands",

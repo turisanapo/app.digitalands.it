@@ -1,6 +1,4 @@
 import { useBookings } from '../context/BookingContext';
-import { useI18n } from '../context/I18nContext';
-import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 export default function CartDrawer() {
@@ -13,8 +11,6 @@ export default function CartDrawer() {
         processCheckout,
         paymentLoading
     } = useBookings();
-    const { t } = useI18n();
-    const { user } = useAuth();
 
     if (!isCartOpen) return null;
 

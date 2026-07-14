@@ -1,17 +1,11 @@
 import { supabaseAdmin } from './_lib/supabase-admin.js';
-import { getAuthUser } from './_lib/auth.js';
+import { requireUser } from './_lib/auth.js';
 
 export default async function handler(req, res) {
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    const user = await requireUser(req, res, 'GET');
+    if (!user) return;
 
     try {
-        const user = await getAuthUser(req);
-        if (!user) {
-            return res.status(401).json({ error: 'Non autenticato.' });
-        }
-
         const { data: profile, error } = await supabaseAdmin
             .from('profiles')
             .select('stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled')

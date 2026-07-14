@@ -19,3 +19,8 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Production secrets
+env.prod
+.vercel
+.env*

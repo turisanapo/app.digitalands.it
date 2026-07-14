@@ -1,18 +1,12 @@
 import { stripe } from './_lib/stripe.js';
 import { supabaseAdmin } from './_lib/supabase-admin.js';
-import { getAuthUser } from './_lib/auth.js';
+import { requireUser, siteUrl } from './_lib/auth.js';
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    const user = await requireUser(req, res, 'POST');
+    if (!user) return;
 
     try {
-        const user = await getAuthUser(req);
-        if (!user) {
-            return res.status(401).json({ error: 'Non autenticato.' });
-        }
-
         // Verify user is a manager
         const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
@@ -28,7 +22,6 @@ export default async function handler(req, res) {
             return res.status(403).json({ error: 'Solo i manager possono configurare i pagamenti.' });
         }
 
-        const siteUrl = process.env.VITE_SITE_URL || 'https://digitalands-v2.vercel.app';
         let stripeAccountId = profile.stripe_account_id;
 
         // Create new Connect account if not exists

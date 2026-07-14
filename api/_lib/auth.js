@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabase-admin.js';
 
-export async function getAuthUser(req) {
+async function getAuthUser(req) {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return null;
 
@@ -8,3 +8,20 @@ export async function getAuthUser(req) {
     if (error) return null;
     return user;
 }
+
+// Shared method-check + auth preamble. Returns the user, or null after
+// having already written the error response.
+export async function requireUser(req, res, method) {
+    if (req.method !== method) {
+        res.status(405).json({ error: 'Method not allowed' });
+        return null;
+    }
+    const user = await getAuthUser(req);
+    if (!user) {
+        res.status(401).json({ error: 'Non autenticato.' });
+        return null;
+    }
+    return user;
+}
+
+export const siteUrl = process.env.VITE_SITE_URL || 'https://digitalands-v2.vercel.app';

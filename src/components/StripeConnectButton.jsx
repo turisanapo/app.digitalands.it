@@ -54,7 +54,7 @@ export default function StripeConnectButton() {
 
     return (
         <div className="space-y-2">
-            {status.hasAccount && !status.chargesEnabled && (
+            {status.hasAccount && (
                 <div className="text-xs font-mono px-3 py-1.5 rounded inline-flex items-center gap-1.5"
                     style={{
                         color: 'var(--accent)',

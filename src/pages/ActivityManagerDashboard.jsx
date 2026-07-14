@@ -5,13 +5,8 @@ import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
 import StripeConnectButton from '../components/StripeConnectButton';
 import ImageUploadGroup from '../components/ImageUploadGroup';
-
-const RAGUSA_COMUNI = [
-    'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
-    'Ispica', 'Pozzallo', 'Santa Croce Camerina',
-    'Chiaramonte Gulfi', 'Monterosso Almo', 'Giarratana',
-    'Marina di Ragusa',
-];
+import StatusPill from '../components/StatusPill';
+import { RAGUSA_COMUNI } from '../data/comuni';
 
 const CATEGORIES = ['Surf', 'Kite Surf', 'Yoga', 'Escursioni', 'Snorkeling', 'Food & Wine', 'Altro'];
 
@@ -304,7 +299,7 @@ const MonitorTab = memo(function MonitorTab({ activities, bookings }) {
                         </div>
                         <div style={{ padding: '0 20px' }}>
                             {Object.entries(act.groupedSlots).map(([slot, bks]) => (
-                                <div key={slot} style={{ py: '16px', borderBottom: '1px solid var(--border)', padding: '16px 0' }}>
+                                <div key={slot} style={{ borderBottom: '1px solid var(--border)', padding: '16px 0' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                                         <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--accent)', background: 'var(--accent-dim)', padding: '2px 8px', borderRadius: '4px' }}>⏱ {slot}</span>
                                         <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{bks.length} PARTECIPANTI</span>
@@ -533,15 +528,7 @@ export default function ActivityManagerDashboard() {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>€{b.total_price}</span>
-                                            <span style={{
-                                                fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                padding: '3px 10px', borderRadius: '4px',
-                                                color: b.status === 'cancellata' ? '#f87171' : '#4ade80',
-                                                background: b.status === 'cancellata' ? 'rgba(248,113,113,0.08)' : 'rgba(74,222,128,0.08)',
-                                                border: `1px solid ${b.status === 'cancellata' ? 'rgba(248,113,113,0.2)' : 'rgba(74,222,128,0.2)'}`,
-                                            }}>
-                                                {b.status === 'cancellata' ? 'Cancellata' : 'Confermata'}
-                                            </span>
+                                            <StatusPill status={b.status} />
                                         </div>
                                     </div>
                                 ))}

@@ -1,20 +1,13 @@
 import { stripe } from './_lib/stripe.js';
 import { supabaseAdmin } from './_lib/supabase-admin.js';
-import { getAuthUser } from './_lib/auth.js';
+import { requireUser } from './_lib/auth.js';
 import { parseBody } from './_lib/body.js';
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    const user = await requireUser(req, res, 'POST');
+    if (!user) return;
 
     try {
-        const user = await getAuthUser(req);
-        if (!user) {
-            return res.status(401).json({ error: 'Non autenticato.' });
-        }
-
-        // Parse body from stream (Vercel non-Next.js does not auto-parse JSON)
         const body = await parseBody(req);
         const { bookingId } = body;
 
@@ -57,11 +50,10 @@ export default async function handler(req, res) {
             });
         }
 
-        // Process refund via Stripe (reverse transfer + application fee)
+        // Plain refund: checkout charges the platform account directly (no Connect
+        // transfer), so reverse_transfer/refund_application_fee would fail at Stripe
         await stripe.refunds.create({
             payment_intent: booking.stripe_payment_intent_id,
-            reverse_transfer: true,
-            refund_application_fee: true,
         });
 
         // Update booking status

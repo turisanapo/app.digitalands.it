@@ -5,13 +5,8 @@ import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
 import StripeConnectButton from '../components/StripeConnectButton';
 import ImageUploadGroup from '../components/ImageUploadGroup';
-
-const RAGUSA_COMUNI = [
-    'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
-    'Ispica', 'Pozzallo', 'Santa Croce Camerina',
-    'Chiaramonte Gulfi', 'Monterosso Almo', 'Giarratana',
-    'Marina di Ragusa',
-];
+import StatusPill from '../components/StatusPill';
+import { RAGUSA_COMUNI } from '../data/comuni';
 
 const AMENITIES_LIST = [
     'WiFi veloce', 'Piscina', 'Aria condizionata', 'Cucina equipaggiata',
@@ -245,10 +240,7 @@ export default function PropertyManagerDashboard() {
     const [properties, setProperties] = useState([]);
     const [loadingData, setLoadingData] = useState(true);
     const [editItem, setEditItem] = useState(null);
-
-    // For now bookings remain in localStorage as we didn't migrate them yet, 
-    // but in a real case we would fetch them from Supabase too.
-    const bookings = [];
+    const [bookings, setBookings] = useState([]);
 
     const stats = useMemo(() => ({
         published: properties.filter(p => p.published).length,
@@ -257,7 +249,10 @@ export default function PropertyManagerDashboard() {
     }), [properties, bookings]);
 
     useEffect(() => {
-        if (user) refreshList();
+        if (user) {
+            refreshList();
+            fetchManagerBookings();
+        }
     }, [user]);
 
     async function refreshList() {
@@ -267,6 +262,19 @@ export default function PropertyManagerDashboard() {
         setLoadingData(false);
         setActiveTab('list');
         setEditItem(null);
+    }
+
+    // RLS "Managers read property bookings" limits rows to this manager's properties
+    async function fetchManagerBookings() {
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('id, property_id, property_name, check_in, check_out, total_price, status, created_at')
+            .not('property_id', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (!error && data) {
+            setBookings(data);
+        }
     }
 
     const handleDelete = useCallback(async (id) => {
@@ -410,25 +418,19 @@ export default function PropertyManagerDashboard() {
                                     <div key={b.id} style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                                         <div>
                                             <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                🏡 {b.propertyName}
+                                                🏡 {b.property_name}
                                             </div>
                                             <div style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                                                📅 {new Date(b.checkIn).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}
-                                                {' → '}
-                                                {new Date(b.checkOut).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                                📅 {new Date(b.check_in).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}
+                                                {b.check_out && <>
+                                                    {' → '}
+                                                    {new Date(b.check_out).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                                </>}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>€{b.totalPrice}</span>
-                                            <span style={{
-                                                fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                padding: '3px 10px', borderRadius: '4px',
-                                                color: b.status === 'cancellata' ? '#f87171' : b.status === 'confermata' ? '#4ade80' : 'var(--accent)',
-                                                background: b.status === 'cancellata' ? 'rgba(248,113,113,0.08)' : b.status === 'confermata' ? 'rgba(74,222,128,0.08)' : 'var(--accent-dim)',
-                                                border: `1px solid ${b.status === 'cancellata' ? 'rgba(248,113,113,0.2)' : b.status === 'confermata' ? 'rgba(74,222,128,0.2)' : 'rgba(212,168,83,0.2)'}`,
-                                            }}>
-                                                {b.status === 'cancellata' ? 'Cancellata' : b.status === 'confermata' ? 'Confermata' : 'In attesa'}
-                                            </span>
+                                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>€{b.total_price}</span>
+                                            <StatusPill status={b.status} />
                                         </div>
                                     </div>
                                 ))}

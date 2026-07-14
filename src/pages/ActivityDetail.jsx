@@ -6,21 +6,18 @@ import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
 import ReviewSection from '../components/ReviewSection';
 import ImageGallery from '../components/ImageGallery';
-import { useI18n } from '../context/I18nContext';
 
 export default function ActivityDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
     const { addToCart } = useBookings();
-    const { t } = useI18n();
 
     const [activity, setActivity] = useState(null);
     const [loading, setLoading] = useState(true);
     const [ratingData, setRatingData] = useState({ avg: 0, count: 0 });
     const [bookingDate, setBookingDate] = useState('');
-    const [bookingStatus, setBookingStatus] = useState('idle'); // idle | loading | success | error
-    const [bookingError, setBookingError] = useState(null);
+    const [bookingStatus, setBookingStatus] = useState('idle'); // idle | success
     const [step, setStep] = useState('select'); // 'select' or 'confirm'
 
     useEffect(() => {
@@ -56,47 +53,30 @@ export default function ActivityDetail() {
     }, [id]);
 
     const [guests, setGuests] = useState(1);
+    const [timeSlot, setTimeSlot] = useState('');
     const totalPrice = activity ? activity.price * guests : 0;
+    const slots = activity?.slots?.length ? activity.slots : ['09:00', '11:00', '14:00', '16:00'];
+    const today = new Date().toISOString().split('T')[0];
 
-    async function handleBook(e) {
-        e.preventDefault();
+    function handleConfirm() {
         if (!user) {
             navigate(`/auth?redirect=/activity/${id}`);
             return;
         }
         if (!bookingDate) return;
 
-        setBookingStatus('loading');
-        // This part is now for confirming the selection before adding to cart
-        setStep('confirm');
-        setBookingStatus('idle'); // Reset status for the confirmation step
-    }
-
-    async function handleConfirm() {
-        if (!user) {
-            navigate(`/auth?redirect=/activity/${id}`);
-            return;
-        }
-        if (!bookingDate) return;
-
-        setBookingStatus('loading');
-        const res = await addToCart({
+        addToCart({
             activityId: activity.id,
             activityName: activity.name,
-            activityImage: activity.image_url || activity.images?.[0], // Use first image from gallery or fallback
+            activityImage: activity.image_url || activity.images?.[0],
             checkIn: bookingDate,
+            timeSlot,
             guests: guests,
             totalPrice: totalPrice,
             category: activity.category,
             emoji: activity.emoji
         });
-
-        if (res.error) {
-            setBookingStatus('error');
-            setBookingError(res.error);
-        } else {
-            setBookingStatus('success');
-        }
+        setBookingStatus('success');
     }
 
     if (loading) {
@@ -204,18 +184,35 @@ export default function ActivityDetail() {
                                             <div className="space-y-4 mb-8">
                                                 <div>
                                                     <label className="text-[10px] font-mono text-textMuted uppercase tracking-widest block mb-2">Seleziona Data</label>
-                                                    <select
+                                                    <input
+                                                        type="date"
+                                                        min={today}
                                                         value={bookingDate}
                                                         onChange={(e) => setBookingDate(e.target.value)}
                                                         className="w-full bg-surface-2 border border-border-light rounded-lg px-4 py-3 text-sm text-textPrimary focus:border-accent outline-none"
-                                                    >
-                                                        <option value="">Scegli una data...</option>
-                                                        {activity.slots?.map(slot => (
-                                                            <option key={slot.id} value={slot.start_time}>
-                                                                {new Date(slot.start_time).toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}
-                                                            </option>
+                                                        style={{ colorScheme: 'dark' }}
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="text-[10px] font-mono text-textMuted uppercase tracking-widest block mb-2">Orario</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {slots.map(s => (
+                                                            <button
+                                                                key={s}
+                                                                type="button"
+                                                                onClick={() => setTimeSlot(s)}
+                                                                className="px-4 py-2 rounded-lg text-xs font-mono transition-all"
+                                                                style={{
+                                                                    border: timeSlot === s ? '1px solid var(--accent)' : '1px solid var(--border-light)',
+                                                                    background: timeSlot === s ? 'var(--accent-dim)' : 'transparent',
+                                                                    color: timeSlot === s ? 'var(--accent)' : 'var(--text-muted)',
+                                                                }}
+                                                            >
+                                                                {s}
+                                                            </button>
                                                         ))}
-                                                    </select>
+                                                    </div>
                                                 </div>
 
                                                 <div>
@@ -239,22 +236,17 @@ export default function ActivityDetail() {
                                                 </div>
                                             </div>
 
-                                            {bookingStatus === 'error' && (
-                                                <div className="text-xs text-red-400 mb-4">❌ {bookingError}</div>
-                                            )}
-
                                             <button
                                                 onClick={() => {
-                                                    if (!bookingDate) {
-                                                        alert('Seleziona una data per continuare.');
+                                                    if (!bookingDate || !timeSlot) {
+                                                        alert('Seleziona data e orario per continuare.');
                                                         return;
                                                     }
                                                     setStep('confirm');
                                                 }}
                                                 className="btn-gold w-full py-4 text-sm uppercase tracking-widest font-bold"
-                                                disabled={bookingStatus === 'loading'}
                                             >
-                                                {bookingStatus === 'loading' ? 'ELABORAZIONE...' : 'PRENOTA ORA →'}
+                                                PRENOTA ORA →
                                             </button>
                                         </>
                                     ) : (
@@ -262,7 +254,8 @@ export default function ActivityDetail() {
                                             <div className="mb-6 pb-6 border-b border-border">
                                                 <h4 className="font-serif text-lg text-textPrimary mb-4">Riepilogo</h4>
                                                 <div className="space-y-2 text-sm">
-                                                    <div className="flex justify-between"><span className="text-textMuted">Data:</span> <span className="text-textPrimary font-mono">{new Date(bookingDate).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span></div>
+                                                    <div className="flex justify-between"><span className="text-textMuted">Data:</span> <span className="text-textPrimary font-mono">{new Date(bookingDate + 'T12:00:00').toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span></div>
+                                                    <div className="flex justify-between"><span className="text-textMuted">Orario:</span> <span className="text-textPrimary font-mono">{timeSlot}</span></div>
                                                     <div className="flex justify-between"><span className="text-textMuted">Partecipanti:</span> <span className="text-textPrimary font-mono">{guests}</span></div>
                                                 </div>
                                             </div>

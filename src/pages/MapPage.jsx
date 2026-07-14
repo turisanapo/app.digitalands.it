@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import { supabase } from '../lib/supabase';
+import { SEED_PROPERTIES } from '../data/seedProperties';
+import { COMUNE_COORDS } from '../data/comuni';
 
 // Fix leaflet default icon paths (Vite/webpack asset issue)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -35,7 +38,7 @@ const propertyIcon = L.divIcon({
 
 // ─── Seed data with coordinates (Ragusa province) ───
 const SEED_ACTIVITIES = [
-    { id: 'surf-mondello', name: 'Surf — Marina di Ragusa', category: 'Surf', price: 65, duration: '2h', lat: 36.7833, lng: 14.5333 },
+    { id: 'surf-marina', name: 'Surf — Marina di Ragusa', category: 'Surf', price: 65, duration: '2h', lat: 36.7833, lng: 14.5333 },
     { id: 'kite-surf', name: 'Kite Surf — Santa Croce Camerina', category: 'Kite Surf', price: 90, duration: '3h', lat: 36.8272, lng: 14.5233 },
     { id: 'yoga-cliff', name: 'Sunrise Yoga — Scicli', category: 'Yoga', price: 35, duration: '1h 30min', lat: 36.7919, lng: 14.7025 },
     { id: 'etna-trekking', name: 'Trekking — Chiaramonte Gulfi', category: 'Escursioni', price: 55, duration: '6h', lat: 37.0286, lng: 14.7019 },
@@ -47,26 +50,10 @@ const SEED_ACTIVITIES = [
     { id: 'windsurf-comiso', name: 'Wind Surf — Comiso', category: 'Surf', price: 80, duration: '3h', lat: 36.9447, lng: 14.6069 },
 ];
 
-const SEED_PROPERTIES = [
-    { id: 'p1', name: 'Villa Barocca — Ragusa Ibla', location: 'Ragusa', pricePerNight: 180, lat: 36.9228, lng: 14.7137 },
-    { id: 'p2', name: 'Masseria Modica Hills', location: 'Modica', pricePerNight: 140, lat: 36.8700, lng: 14.7600 },
-    { id: 'p3', name: 'Casa sul Mare — Pozzallo', location: 'Pozzallo', pricePerNight: 120, lat: 36.7280, lng: 14.8520 },
-    { id: 'p4', name: 'Palazzo Scicli', location: 'Scicli', pricePerNight: 160, lat: 36.7950, lng: 14.7080 },
-    { id: 'p5', name: 'Trullo Vittoria', location: 'Vittoria', pricePerNight: 95, lat: 36.9530, lng: 14.5360 },
-    { id: 'p6', name: 'Vista Azzurra — Santa Croce', location: 'Santa Croce Camerina', pricePerNight: 110, lat: 36.8280, lng: 14.5270 },
-];
-
-import { supabase } from '../lib/supabase';
-import { useEffect } from 'react';
-
-// Simple deterministic coordinate offset for custom items without coords
-const COMUNE_COORDS = {
-    'Ragusa': [36.9272, 14.7186], 'Modica': [36.8631, 14.7746], 'Scicli': [36.7919, 14.7025],
-    'Vittoria': [36.9551, 14.5326], 'Comiso': [36.9447, 14.6069], 'Ispica': [36.7878, 14.9055],
-    'Pozzallo': [36.7304, 14.8486], 'Santa Croce Camerina': [36.8272, 14.5233],
-    'Chiaramonte Gulfi': [37.0286, 14.7019], 'Monterosso Almo': [37.0619, 14.7519],
-    'Giarratana': [37.0328, 14.8336], 'Marina di Ragusa': [36.7833, 14.5333],
-};
+const SEED_PROPERTY_PINS = SEED_PROPERTIES.map((p, i) => {
+    const base = COMUNE_COORDS[p.comune] || [36.93, 14.72];
+    return { ...p, lat: base[0] + (i * 0.002), lng: base[1] + (i * 0.002) };
+});
 
 export default function MapPage() {
     const { t } = useI18n();
@@ -107,7 +94,7 @@ export default function MapPage() {
     }, []);
 
     const allActivities = [...SEED_ACTIVITIES, ...customActs];
-    const allProperties = [...SEED_PROPERTIES, ...customProps];
+    const allProperties = [...SEED_PROPERTY_PINS, ...customProps];
 
     const showActivities = filter === 'all' || filter === 'activities';
     const showProperties = filter === 'all' || filter === 'houses';
@@ -184,7 +171,6 @@ export default function MapPage() {
                     center={[36.88, 14.72]}
                     zoom={10}
                     style={{ height: '100%', width: '100%' }}
-                    preferCanvas={false}
                 >
                     <TileLayer
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -219,7 +205,7 @@ export default function MapPage() {
                                     </div>
                                     <div style={{ fontWeight: 600, marginBottom: '4px', color: '#F0F0F0' }}>{p.name}</div>
                                     <div style={{ fontSize: '12px', color: '#D4A853', fontWeight: 700 }}>€{p.pricePerNight} / notte</div>
-                                    <Link to="/#properties" style={{ display: 'block', marginTop: '10px', fontSize: '11px', fontFamily: 'monospace', color: '#60a5fa', textDecoration: 'none' }}>
+                                    <Link to={`/property/${p.id}`} style={{ display: 'block', marginTop: '10px', fontSize: '11px', fontFamily: 'monospace', color: '#60a5fa', textDecoration: 'none' }}>
                                         Dettagli →
                                     </Link>
                                 </div>

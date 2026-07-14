@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
-import { useI18n } from '../context/I18nContext'; // Added
 
 import { SEED_PROPERTIES } from '../data/seedProperties';
 import ReviewSection from '../components/ReviewSection';
-import ImageGallery from '../components/ImageGallery'; // Added
+import ImageGallery from '../components/ImageGallery';
 
 import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
@@ -99,7 +98,7 @@ function BookingSidebar({ property }) {
     const [checkIn, setCheckIn] = useState(null);
     const [guests, setGuests] = useState(1);
     const [months, setMonths] = useState(1);
-    const [step, setStep] = useState('select'); // select | confirm | paying | done
+    const [step, setStep] = useState('select'); // select | confirm
     const [toast, setToast] = useState('');
 
     const isSeedProperty = !property.owner_id;
@@ -139,35 +138,7 @@ function BookingSidebar({ property }) {
             emoji: '🏡'
         });
 
-        setStep('select'); // Reset step for future additions if needed
-    }
-
-    if (step === 'done') {
-        return (
-            <div className="rounded-lg p-6 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border-light)' }}>
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ background: 'rgba(212,168,83,0.12)', border: '1px solid rgba(212,168,83,0.3)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-                        <path d="M5 13l4 4L19 7" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </div>
-                <div className="font-serif text-xl text-textPrimary mb-2">Pagamento completato!</div>
-                <p className="text-sm text-textMuted mb-5">La tua prenotazione è confermata. Trovi tutti i dettagli nella tua dashboard.</p>
-                <Link to="/dashboard" className="btn-gold block text-center" style={{ padding: '12px' }}>
-                    Vai alla dashboard →
-                </Link>
-            </div>
-        );
-    }
-
-    if (step === 'paying') {
-        return (
-            <div className="rounded-lg p-6 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border-light)' }}>
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent mx-auto mb-4"></div>
-                <div className="text-sm text-textPrimary font-medium mb-1">Reindirizzamento al pagamento...</div>
-                <p className="text-xs text-textMuted">Verrai portato su Stripe per completare il pagamento in sicurezza.</p>
-            </div>
-        );
+        setStep('select');
     }
 
     if (step === 'confirm') {

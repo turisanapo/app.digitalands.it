@@ -1,8 +1,8 @@
-import { Composition } from 'remotion';
+import { Composition, registerRoot } from 'remotion';
 import { SicilyShowcase } from './SicilyShowcase';
 import { StatsCounter } from './StatsCounter';
 
-export const RemotionRoot = () => {
+const RemotionRoot = () => {
   return (
     <>
       <Composition
@@ -24,3 +24,5 @@ export const RemotionRoot = () => {
     </>
   );
 };
+
+registerRoot(RemotionRoot);

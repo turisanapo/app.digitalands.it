@@ -105,7 +105,7 @@ function LoginForm({ onSuccess }) {
     );
 }
 
-function RegisterForm({ onSuccess }) {
+function RegisterForm() {
     const { register } = useAuth();
     const { t } = useI18n();
     const [form, setForm] = useState({
@@ -141,7 +141,6 @@ function RegisterForm({ onSuccess }) {
         const e = validate();
         if (Object.keys(e).length) { setErrors(e); return; }
         setLoading(true);
-        console.log('Submitting registration form:', { ...form, password: '***', confirm: '***' });
         try {
             const res = await register(form);
             if (res.error) {
@@ -350,7 +349,7 @@ export default function AuthPage() {
 
                         {tab === 'login'
                             ? <LoginForm onSuccess={onSuccess} />
-                            : <RegisterForm onSuccess={onSuccess} />
+                            : <RegisterForm />
                         }
 
                         <p className="text-xs text-textMuted mt-6 text-center">

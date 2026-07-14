@@ -13,7 +13,6 @@ export function BookingProvider({ children }) {
         return saved ? JSON.parse(saved) : [];
     });
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [paymentLoading, setPaymentLoading] = useState(false);
 
     useEffect(() => {
@@ -29,7 +28,6 @@ export function BookingProvider({ children }) {
     }, [cart]);
 
     async function fetchUserBookings() {
-        setLoading(true);
         const { data, error } = await supabase
             .from('bookings')
             .select('id, user_id, property_id, activity_id, property_name, activity_name, check_in, check_out, total_price, status, payment_status, platform_fee, manager_payout, created_at, category, emoji')
@@ -39,7 +37,6 @@ export function BookingProvider({ children }) {
         if (!error && data) {
             setBookings(data);
         }
-        setLoading(false);
     }
 
     const cartTotals = useMemo(() => {
@@ -57,18 +54,12 @@ export function BookingProvider({ children }) {
     }, [cart, user]);
 
     function addToCart(item) {
-        // Prevent duplicates for the same property stay if needed, 
-        // but for now we just append.
-        setCart(prev => [...prev, { ...item, cartId: Math.random().toString(36).substr(2, 9) }]);
+        setCart(prev => [...prev, { ...item, cartId: crypto.randomUUID() }]);
         setIsCartOpen(true);
     }
 
     function removeFromCart(cartId) {
         setCart(prev => prev.filter(item => item.cartId !== cartId));
-    }
-
-    function clearCart() {
-        setCart([]);
     }
 
     // Single-item direct checkout (used by ActivitiesPage)
@@ -85,12 +76,11 @@ export function BookingProvider({ children }) {
             timeSlot: booking.timeSlot || null,
         };
         const platformFee = price * 0.10;
-        const membershipFee = user?.is_premium ? 0 : 0; // skip membership for single activities
         setPaymentLoading(true);
         try {
             const { sessionUrl } = await createCheckoutSession({
                 items: [item],
-                totals: { itemsTotal: price, platformFee, membershipFee, total: price + platformFee + membershipFee }
+                totals: { itemsTotal: price, platformFee, membershipFee: 0, total: price + platformFee }
             });
             window.location.href = sessionUrl;
             return { redirecting: true };
@@ -157,16 +147,14 @@ export function BookingProvider({ children }) {
         cart,
         addToCart,
         removeFromCart,
-        clearCart,
         cartTotals,
         isCartOpen,
         setIsCartOpen,
         addBooking,
         processCheckout,
         cancelBooking,
-        loading,
         paymentLoading
-    }), [bookings, cart, isCartOpen, cartTotals, loading, paymentLoading]);
+    }), [bookings, cart, isCartOpen, cartTotals, paymentLoading]);
 
     return (
         <BookingContext.Provider value={value}>

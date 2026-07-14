@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
 import { useI18n } from '../context/I18nContext';
 import DigitalCard from '../components/DigitalCard';
+import StatusPill from '../components/StatusPill';
 import { CAT_COLORS } from '../data/categories';
 
 const PaymentBadge = memo(function PaymentBadge({ paymentStatus }) {
@@ -334,14 +335,7 @@ const ActivityBookingsTab = memo(function ActivityBookingsTab({ bookings, onCanc
                                     }}>{b.category || 'Esperienza'}</span>
                                 </div>
                             </div>
-                            <span className="font-mono text-[10px] tracking-widest uppercase px-2.5 py-1 rounded"
-                                style={{
-                                    color: b.status === 'cancellata' ? '#f87171' : '#4ade80',
-                                    background: b.status === 'cancellata' ? 'rgba(248,113,113,0.08)' : 'rgba(74,222,128,0.08)',
-                                    border: `1px solid ${b.status === 'cancellata' ? 'rgba(248,113,113,0.2)' : 'rgba(74,222,128,0.2)'}`,
-                                }}>
-                                {b.status === 'cancellata' ? 'Cancellata' : 'Confermata'}
-                            </span>
+                            <StatusPill status={b.status} />
                         </div>
                         <div className="grid grid-cols-3 gap-3 mb-4">
                             <div>
@@ -397,14 +391,9 @@ export default function Dashboard() {
         }
     }, []);
 
-    // const bookings = getUserBookings(); // Removed duplicate
-
-    const { propertyBookings, activityBookings, upcoming, past } = useMemo(() => {
+    const { upcoming, past } = useMemo(() => {
         const pb = bookings.filter(b => b.property_id);
-        const ab = bookings.filter(b => b.activity_id);
         return {
-            propertyBookings: pb,
-            activityBookings: ab,
             upcoming: pb.filter(b => b.status !== 'cancellata' && new Date(b.check_in) > new Date()),
             past: pb.filter(b => b.status === 'cancellata' || new Date(b.check_out) <= new Date())
         };
@@ -595,6 +584,6 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 }

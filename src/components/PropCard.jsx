@@ -1,18 +1,13 @@
 import { Link } from 'react-router-dom';
-import { memo, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { memo } from 'react';
 import StarRating from './StarRating';
 
 const optimizeUnsplash = (url) => {
     if (!url || !url.includes('unsplash.com')) return url;
-    if (url.includes('?')) {
-        const base = url.split('?')[0];
-        return `${base}?w=800&q=75&auto=format`;
-    }
-    return `${url}?w=800&q=75&auto=format`;
+    return `${url.split('?')[0]}?w=800&q=75&auto=format`;
 };
 
-const PropCard = memo(function PropCard({ prop }) {
+const PropCard = memo(function PropCard({ prop, rating }) {
     // Standardize data fields
     const name = prop.name;
     const img = prop.img || prop.image;
@@ -24,28 +19,7 @@ const PropCard = memo(function PropCard({ prop }) {
         'WiFi'
     ];
     const archColor = prop.archColor || 'rgba(212,168,83,0.15)';
-
-    const [ratingData, setRatingData] = useState({ avg: 0, count: 0 });
-
-    useEffect(() => {
-        async function fetchRating() {
-            try {
-                const { data, error } = await supabase
-                    .from('reviews')
-                    .select('rating')
-                    .eq('entity_type', 'property')
-                    .eq('entity_id', prop.id.toString());
-
-                if (!error && data && data.length > 0) {
-                    const avg = data.reduce((acc, r) => acc + r.rating, 0) / data.length;
-                    setRatingData({ avg, count: data.length });
-                }
-            } catch (err) {
-                console.error('Error fetching rating for PropCard:', err);
-            }
-        }
-        fetchRating();
-    }, [prop.id]);
+    const ratingData = rating || { avg: 0, count: 0 };
 
     return (
         <div className="card-hover flex flex-col bg-surface overflow-hidden" style={{ borderRadius: '12px', border: '1px solid var(--border)' }}>

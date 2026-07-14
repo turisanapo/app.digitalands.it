@@ -1,5 +1,5 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
 import { BookingProvider } from './context/BookingContext';
@@ -16,14 +16,13 @@ import FoundingMember from './components/FoundingMember';
 import Testimonials from './components/Testimonials';
 import Partners from './components/Partners';
 import WaitlistCTA from './components/WaitlistCTA';
-import SicilyPlayer from './components/SicilyPlayer';
-import StatsPlayer from './components/StatsPlayer';
+import ScrollPlayer from './components/ScrollPlayer';
+import { SicilyShowcase } from './remotion/SicilyShowcase';
+import { StatsCounter } from './remotion/StatsCounter';
 import Footer from './components/Footer';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
 import { injectJSONLD } from './utils/seo';
-
-import './index.css';
 
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
@@ -36,7 +35,6 @@ const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const ActivityDetail = lazy(() => import('./pages/ActivityDetail'));
 const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
-const BackendDiagnostic = lazy(() => import('./pages/BackendDiagnostic'));
 const StripeOnboarding = lazy(() => import('./pages/StripeOnboarding'));
 
 function LandingPage() {
@@ -63,9 +61,9 @@ function LandingPage() {
         <>
             <Hero />
             <WhySicily />
-            <SicilyPlayer />
+            <ScrollPlayer id="sicily-showcase" label="Un giorno a Marina di Ragusa" component={SicilyShowcase} durationInFrames={180} />
             <HowItWorks />
-            <StatsPlayer />
+            <ScrollPlayer id="stats" component={StatsCounter} durationInFrames={150} />
             <Properties />
             <FoundingMember />
             <Testimonials />
@@ -73,6 +71,22 @@ function LandingPage() {
             <WaitlistCTA />
             <Footer />
         </>
+    );
+}
+
+function NotFound() {
+    return (
+        <div style={{
+            minHeight: '70vh', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: '16px',
+            color: 'var(--text-primary)', textAlign: 'center', padding: '24px',
+        }}>
+            <div style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent)' }}>404</div>
+            <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontSize: '1.4rem', fontWeight: 700 }}>
+                Pagina non trovata
+            </h1>
+            <Link to="/" className="btn-gold" style={{ padding: '10px 28px' }}>Torna alla home</Link>
+        </div>
     );
 }
 
@@ -159,10 +173,8 @@ export default function App() {
                                             <Route path="/properties" element={<PropertiesPage />} />
                                             <Route path="/blog" element={<BlogPage />} />
                                             <Route path="/blog/:slug" element={<BlogPostDetail />} />
-                                            <Route path="/debug/backend" element={<BackendDiagnostic />} />
                                             <Route path="/manager/stripe-onboarding" element={<StripeOnboarding />} />
-                                            {/* Fallback */}
-                                            <Route path="*" element={<LandingPage />} />
+                                            <Route path="*" element={<NotFound />} />
                                         </Routes>
                                     </Suspense>
                                 </div>

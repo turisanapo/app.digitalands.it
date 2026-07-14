@@ -3,7 +3,7 @@ import VideoBackground from './VideoBackground';
 import HeroParticles from './HeroParticles';
 import { motion } from 'motion/react';
 
-const EASE_EXPO = [0.16, 1, 0.3, 1];
+import { EASE_EXPO } from '../utils/motion';
 
 const AVATARS = [
     { bg: 'linear-gradient(135deg,#8A6B3A,#D4A853)' },

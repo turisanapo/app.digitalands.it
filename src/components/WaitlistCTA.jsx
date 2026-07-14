@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 
-const EASE_EXPO = [0.16, 1, 0.3, 1];
+import { EASE_EXPO } from '../utils/motion';
 
 export default function WaitlistCTA() {
     const [email, setEmail] = useState('');
