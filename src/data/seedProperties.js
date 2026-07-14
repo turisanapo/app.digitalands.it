@@ -35,7 +35,7 @@ export const SEED_PROPERTIES = [
         location: 'Pozzallo Lungomare',
         comune: 'Pozzallo',
         pricePerNight: 120,
-        img: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=1200&q=80',
+        img: 'https://images.unsplash.com/photo-1583313544923-68854ce7277b?w=1200&q=80',
         archColor: 'rgba(53,140,220,0.2)',
         specs: ['200 Mbps', 'Vista mare 180°', 'Terrazza da lavoro'],
         description: 'Addormentati col rumore delle onde e lavora con la brezza marina. Attico situato sul lungomare di Pozzallo, perfetto per chi vuole unire call mattutine e tuffi in mare a pranzo.',

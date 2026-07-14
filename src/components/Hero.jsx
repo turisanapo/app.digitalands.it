@@ -32,7 +32,7 @@ const FLOAT_TAGS = [
 
 const VILLA_CARDS = [
     { img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=280&q=75&fit=crop', label: 'Villa Iblea',        price: '€890/mese',   top: '26%', left: '4%',  delay: '0s',   dur: '11s' },
-    { img: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=280&q=75&fit=crop',    label: 'Terrazza sul Mare', price: '€1.190/mese', top: '28%', right: '3%', delay: '2s',   dur: '10s' },
+    { img: 'https://images.unsplash.com/photo-1583313544923-68854ce7277b?w=280&q=75&fit=crop',    label: 'Terrazza sul Mare', price: '€1.190/mese', top: '28%', right: '3%', delay: '2s',   dur: '10s' },
     { img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=280&q=75&fit=crop',    label: 'Casa Barocca',      price: '€970/mese',   top: '56%', left: '3%',  delay: '3.5s', dur: '12s' },
 ];
 

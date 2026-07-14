@@ -22,7 +22,7 @@ const EXPO_OUT = Easing.bezier(0.16, 1, 0.3, 1);
 
 const SLIDES = [
   {
-    img: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=1400&q=85&fit=crop',
+    img: 'https://images.unsplash.com/photo-1583313544923-68854ce7277b?w=1400&q=85&fit=crop',
     word: 'Svegliati.',
     sub: 'Terrazza sul Mediterraneo',
     from: 0,
